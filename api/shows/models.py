@@ -3,6 +3,7 @@ from django.db import models
 from solo.models import SingletonModel
 
 from api.core.models import TimeStampedModel
+from api.core.utils import upload_to_content
 
 DAYS_OF_WEEK = (
     (0, 'Monday'),
@@ -37,6 +38,23 @@ CREDIT_ROLES = (
 )
 
 
+def upload_to_show_cover(instance, filename):
+    return upload_to_content('shows/covers', filename)
+
+
+def upload_to_show_banner(instance, filename):
+    return upload_to_content('shows/banners', filename)
+
+
+def upload_to_episode_cover(instance, filename):
+    return upload_to_content('episodes/covers', filename)
+
+
+def upload_to_episode_audio(instance, filename):
+    return upload_to_content('episodes/audio', filename)
+
+
+
 class ShowCategory(models.Model):
     name = models.CharField(max_length=30, verbose_name='Name')
     slug = models.SlugField()
@@ -57,11 +75,11 @@ class Show(TimeStampedModel, models.Model):
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
     category = models.ForeignKey(ShowCategory, blank=False, )
 
-    cover = models.ImageField(width_field='cover_width', height_field='cover_height')
+    cover = models.ImageField(upload_to=upload_to_show_cover, width_field='cover_width', height_field='cover_height')
     cover_width = models.IntegerField(blank=True, null=True)
     cover_height = models.IntegerField(blank=True, null=True)
 
-    banner = models.ImageField(blank=True, null=True, width_field='banner_width', height_field='banner_height')
+    banner = models.ImageField(upload_to=upload_to_show_banner, blank=True, null=True, width_field='banner_width', height_field='banner_height')
     banner_width = models.IntegerField(blank=True, null=True)
     banner_height = models.IntegerField(blank=True, null=True)
 
@@ -133,7 +151,7 @@ class ShowEpisode(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, null=False)
     slug = models.SlugField()
 
-    cover = models.ImageField(blank=True, null=True, width_field='cover_width', height_field='cover_height')
+    cover = models.ImageField(upload_to=upload_to_episode_cover, blank=True, null=True, width_field='cover_width', height_field='cover_height')
     cover_width = models.IntegerField(blank=True, null=True)
     cover_height = models.IntegerField(blank=True, null=True)
 
@@ -141,7 +159,7 @@ class ShowEpisode(TimeStampedModel, models.Model):
 
     published_at = models.DateTimeField()
     run_time = models.PositiveIntegerField()
-    audio_resource = models.FileField()
+    audio_resource = models.FileField(upload_to=upload_to_episode_audio)
     credits = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                      through='EpisodeCredit',
                                      through_fields=('episode', 'user', )

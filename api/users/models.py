@@ -1,8 +1,17 @@
+import os
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
+
+from api.core.utils import upload_to_content
+
+
+def upload_to_profile_cover(instance, filename):
+    return upload_to_content('users/covers', filename)
 
 
 @python_2_unicode_compatible
@@ -12,7 +21,7 @@ class User(AbstractUser):
     # around the globe.
     name = models.CharField(_('Name of User'), blank=True, max_length=255)
 
-    cover = models.ImageField(width_field='cover_width', height_field='cover_height')
+    cover = models.ImageField(upload_to=upload_to_profile_cover, width_field='cover_width', height_field='cover_height')
     cover_width = models.IntegerField(blank=True, null=True)
     cover_height = models.IntegerField(blank=True, null=True)
 
