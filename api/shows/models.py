@@ -103,7 +103,6 @@ class ShowSlot(TimeStampedModel, models.Model):
     end_time = models.TimeField()
     day = models.IntegerField(blank=False, null=False, choices=DAYS_OF_WEEK)
 
-    @property
     def __str__(self):
         return '[{slate}] {show} at {start} on {day}'.format(
             show=self.show.name, slate=self.slate.name, start=self.start_time, day=DAYS[self.day]

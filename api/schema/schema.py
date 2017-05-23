@@ -1,12 +1,17 @@
 from graphene_django import DjangoObjectType
 import graphene
-from api.shows.models import Show, ShowSlot, ScheduleSlate, ShowEpisode, ShowSeries, EpisodeCredit
+from api.shows.models import Show, ShowSlot, ScheduleSlate, ShowEpisode, ShowSeries, EpisodeCredit, ShowsConfiguration
 from api.users.models import User
 
 
 class ShowSlotType(DjangoObjectType):
     class Meta:
         model = ShowSlot
+
+    day = graphene.Field(graphene.Int)
+
+    def resolve_day(self, args, context, info):
+        return self.day
 
 
 class ScheduleSlateType(DjangoObjectType):
@@ -51,7 +56,7 @@ class ShowType(DjangoObjectType):
     episodes = graphene.List(ShowEpisodeType)
 
     def resolve_slots(self, args, context, info):
-        return self.slots.filter(slate=get_current_slate())
+        return self.slots.filter(slate=ShowsConfiguration.objects.get().current_slate)
 
     # def resolve_series(self, args, context, info):
     #     return self.series.all()
@@ -88,6 +93,6 @@ class Query(graphene.ObjectType):
         return ShowEpisode.objects.all()
 
     def resolve_all_slots(self, args, context, info):
-        return ShowSlot.objects.all()
+        return ShowSlot.objects.filter(slate=ShowsConfiguration.objects.get().current_slate)
 
 schema = graphene.Schema(query=Query)
