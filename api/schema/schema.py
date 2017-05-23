@@ -75,10 +75,14 @@ class Query(graphene.ObjectType):
     all_episodes = graphene.List(ShowEpisodeType, )
     all_members = graphene.List(MembersType, )
     show = graphene.Field(ShowType, slug=graphene.String())
+    automation_show = graphene.Field(ShowType)
 
     def resolve_show(self, args, context, info):
         slug = args.get('slug')
         return Show.objects.get(slug=slug)
+
+    def resolve_automation_show(self, args, context, info):
+        return ShowsConfiguration.objects.get().automation_show
 
     def resolve_all_shows(self, args, context, info):
         return Show.objects.all()
