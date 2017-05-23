@@ -8,7 +8,7 @@ class TestUser(TestCase):
 
     def test__str__(self):
         self.assertEqual(
-            self.user.__str__,
+            str(self.user),
             'testuser'  # This is the default username for self.make_user()
         )
 
