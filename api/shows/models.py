@@ -44,6 +44,10 @@ class ShowCategory(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
+
 
 class Show(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, verbose_name='Show Name', help_text='Name of the show')
@@ -87,6 +91,9 @@ class ScheduleSlate(TimeStampedModel, models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'slate'
+
 
 class ShowSlot(TimeStampedModel, models.Model):
     show = models.ForeignKey(Show, null=False, related_name='slots')
@@ -102,6 +109,9 @@ class ShowSlot(TimeStampedModel, models.Model):
             show=self.show.name, slate=self.slate.name, start=self.start_time, day=DAYS[self.day]
         )
 
+    class Meta:
+        verbose_name = 'slot'
+
 
 class ShowSeries(TimeStampedModel, models.Model):
     show = models.ForeignKey(Show, null=False, related_name='series')
@@ -111,6 +121,10 @@ class ShowSeries(TimeStampedModel, models.Model):
 
     def __str__(self):
         return '{show} - {series} [{type}]'.format(show=self.show.name, series=self.name, type=self.type)
+
+    class Meta:
+        verbose_name = 'series'
+        verbose_name_plural = 'series'
 
 
 class ShowEpisode(TimeStampedModel, models.Model):
@@ -141,6 +155,10 @@ class ShowEpisode(TimeStampedModel, models.Model):
             episode_name=self.name
         )
 
+    class Meta:
+        verbose_name = 'episode'
+        verbose_name_plural = 'episodes'
+
 
 class EpisodeCredit(models.Model):
     episode = models.ForeignKey(ShowEpisode, db_index=True, on_delete=models.CASCADE)
@@ -154,6 +172,9 @@ class EpisodeCredit(models.Model):
             episode=self.episode,
         )
 
+    class Meta:
+        verbose_name = 'Episode Credit'
+
 
 class ShowsConfiguration(SingletonModel):
     current_slate = models.ForeignKey(ScheduleSlate, blank=True, null=True)
@@ -161,7 +182,7 @@ class ShowsConfiguration(SingletonModel):
     off_air = models.BooleanField(default=False)
 
     def __str__(self):
-        return 'Shows Configuration'
+        return 'Shows Settings'
 
     class Meta:
-        verbose_name = "Shows Configuration"
+        verbose_name = 'Shows Settings'
