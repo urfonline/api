@@ -13,12 +13,12 @@ class ShowCategoryAdmin(admin.ModelAdmin):
 
 @register(Show)
 class ShowAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'category')
 
 
 @register(ShowSlot)
 class ShowSlotAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('show', 'day', 'start_time', 'end_time')
 
 
 @register(ScheduleSlate)
@@ -28,17 +28,17 @@ class ScheduleSlateAdmin(admin.ModelAdmin):
 
 @register(ShowSeries)
 class ShowSeriesAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'show', 'type')
 
 
 @register(ShowEpisode)
 class ShowEpisodeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'show', 'series', 'published_at')
 
 
 @register(EpisodeCredit)
 class EpisodeCreditAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user', 'episode', 'role')
 
 
 @register(ShowsConfiguration)

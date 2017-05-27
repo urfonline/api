@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class SchemaConfig(AppConfig):
-    name = 'schema'
+    name = 'api.schema'
+    verbose_name = 'Schema'

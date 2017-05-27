@@ -56,16 +56,15 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount',  # registration
 ]
 
-# Apps specific for this project go here.
 LOCAL_APPS = [
-    # custom users app
     'api.users.apps.UsersConfig',
     'api.core.apps.CoreConfig',
     'api.shows.apps.ShowsConfig',
+    'api.schema.apps.SchemaConfig',
+    'api.feed.apps.FeedConfig',
     'api.articles.apps.ArticlesConfig',
 ]
 
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # MIDDLEWARE CONFIGURATION
