@@ -46,6 +46,8 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = [
     'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
     'crispy_forms',  # Form layouts
     'graphene_django',
     'solo',
@@ -289,4 +291,14 @@ ADMIN_URL = r'^admin/'
 
 GRAPHENE = {
     'SCHEMA': 'api.schema.schema.schema' # Where your Graphene schema lives
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
 }

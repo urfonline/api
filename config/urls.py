@@ -6,6 +6,29 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
 from graphene_django.views import GraphQLView
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import authentication_classes, permission_classes, api_view, parser_classes
+
+def graphql_token_view():
+    view = GraphQLView.as_view(graphiql=True)
+    view = parser_classes([])(view)
+    view = permission_classes((AllowAny,))(view)
+    view = authentication_classes((TokenAuthentication,))(view)
+    view = api_view(['POST', 'GET'])(view)
+    return view
+
+
+class GraphQLWithAuthView(GraphQLView):
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            user, token = TokenAuthentication().authenticate(request)
+            request.user = user
+        except:
+            pass
+        return super(GraphQLWithAuthView, self).dispatch(request, *args, **kwargs)
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
@@ -17,7 +40,7 @@ urlpatterns = [
     # User management
     url(r'^users/', include('api.users.urls', namespace='users')),
     url(r'^accounts/', include('allauth.urls')),
-    url(r'^graphql', csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    url(r'^graphql', csrf_exempt(GraphQLWithAuthView.as_view(graphiql=True))),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

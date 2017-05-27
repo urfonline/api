@@ -53,3 +53,5 @@ graphene
 graphene_django
 django-solo
 django-cors-headers
+djangorestframework
+djangorestframework-jwt
