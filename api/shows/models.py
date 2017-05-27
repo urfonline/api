@@ -109,6 +109,11 @@ class ScheduleSlate(TimeStampedModel, models.Model):
     def __str__(self):
         return self.name
 
+    def get_shows(self):
+        objs = Show.objects.filter(slots__slate=self).distinct()
+        print(objs)
+        return objs
+
     class Meta:
         verbose_name = 'slate'
 
