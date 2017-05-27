@@ -130,6 +130,9 @@ class ScheduleSlate(DjangoObjectType):
     def resolve_shows(self, args, context, info):
         return self.get_shows()
 
+    def resolve_slots(self, args, context, info):
+        return self.slots.all()
+
 
 class Login(graphene.Mutation):
     class Input:
