@@ -61,8 +61,8 @@ LOCAL_APPS = [
     'api.core.apps.CoreConfig',
     'api.shows.apps.ShowsConfig',
     'api.schema.apps.SchemaConfig',
-    'api.feed.apps.FeedConfig',
-    'api.articles.apps.ArticlesConfig',
+    #'api.feed.apps.FeedConfig',
+    #'api.articles.apps.ArticlesConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
