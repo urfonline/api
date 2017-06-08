@@ -51,7 +51,7 @@ celery==4.0.2
 
 graphene==1.4
 graphene-django==1.3
-django-solo
+django-solo==1.1.2
 django-cors-headers
 djangorestframework
 djangorestframework-jwt
