@@ -49,7 +49,7 @@ celery==4.0.2
 
 
 
-graphene
+graphene==1.4
 graphene_django
 django-solo
 django-cors-headers
