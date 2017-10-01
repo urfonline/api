@@ -75,7 +75,7 @@ class Show(TimeStampedModel, models.Model):
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
     category = models.ForeignKey(ShowCategory, blank=False, )
 
-    cover = models.ImageField(upload_to=upload_to_show_cover, width_field='cover_width', height_field='cover_height')
+    cover = models.ImageField(null=True, blank=True, upload_to=upload_to_show_cover, width_field='cover_width', height_field='cover_height')
     cover_width = models.IntegerField(blank=True, null=True)
     cover_height = models.IntegerField(blank=True, null=True)
 
