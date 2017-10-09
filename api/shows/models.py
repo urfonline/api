@@ -54,10 +54,10 @@ def upload_to_episode_audio(instance, filename):
     return upload_to_content('episodes/audio', filename)
 
 
-
 class ShowCategory(models.Model):
     name = models.CharField(max_length=30, verbose_name='Name')
     slug = models.SlugField()
+    color = models.CharField(default='', blank=True, max_length=6, verbose_name='Branding color', help_text='Color hex for category')
 
     def __str__(self):
         return self.name
