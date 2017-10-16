@@ -66,6 +66,16 @@ class EpisodeCredit(DjangoObjectType):
         return self.user
 
 
+class ShowCategory(DjangoObjectType):
+    class Meta:
+        model = show_models.ShowCategory
+
+    shows = graphene.List(lambda: Show)
+
+    def resolve_shows(self, args, context, info):
+        return self.shows.all()
+
+
 class ShowEpisode(DjangoObjectType):
     class Meta:
         model = show_models.ShowEpisode
@@ -100,6 +110,7 @@ class Show(DjangoObjectType):
 
     slots = graphene.List(ShowSlot)
     #series = graphene.List(ShowSeriesType)
+    category = graphene.Field(ShowCategory)
     episodes = graphene.List(ShowEpisode)
     cover = graphene.Field(EmbeddedImage)
 
