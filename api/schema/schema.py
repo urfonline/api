@@ -1,11 +1,19 @@
+from django.utils import timezone
 from django.contrib.auth import authenticate
 from graphene import ObjectType, Node
 from graphene_django import DjangoObjectType, DjangoConnectionField
+from graphene_django.converter import convert_django_field
 from rest_framework.authtoken.models import Token
 import graphene
+from taggit.managers import TaggableManager
+from wagtail.wagtailcore.rich_text import expand_db_html
+
 from api.shows import models as show_models
 from api.users import models as user_models
-
+from api.articles import models as article_models
+from api.events import models as events_models
+from api.core import models as core_models
+from api.home import models as home_models
 
 
 def connection_for_type(_type):
@@ -16,10 +24,16 @@ def connection_for_type(_type):
             name = _type._meta.name + 'Connection'
             node = _type
 
-        def resolve_total_count(self, args, context, info):
+        def resolve_total_count(self, info):
             return self.length
 
     return Connection
+
+
+@convert_django_field.register(TaggableManager)
+def convert_taggable(field, registry):
+    return []
+
 
 class EmbeddedImage(ObjectType):
     width = graphene.Int()
@@ -33,7 +47,6 @@ class BaseUser(graphene.Interface):
     cover = graphene.Field(EmbeddedImage)
 
 
-
 def get_embedded_image(model, name):
     if getattr(model, name) is None:
         return None
@@ -44,6 +57,7 @@ def get_embedded_image(model, name):
         height=getattr(model, '{}_height'.format(name)),
     )
 
+
 class ShowSlot(DjangoObjectType):
     class Meta:
         model = show_models.ShowSlot
@@ -51,7 +65,7 @@ class ShowSlot(DjangoObjectType):
 
     day = graphene.Field(graphene.Int)
 
-    def resolve_day(self, args, context, info):
+    def resolve_day(self, info):
         return self.day
 
 
@@ -62,7 +76,7 @@ class EpisodeCredit(DjangoObjectType):
 
     member = graphene.Field(lambda: User)
 
-    def resolve_member(self, args, context, info):
+    def resolve_member(self, info):
         return self.user
 
 
@@ -72,7 +86,7 @@ class ShowCategory(DjangoObjectType):
 
     shows = graphene.List(lambda: Show)
 
-    def resolve_shows(self, args, context, info):
+    def resolve_shows(self, info):
         return self.shows.all()
 
 
@@ -84,10 +98,10 @@ class ShowEpisode(DjangoObjectType):
     credits = graphene.List(EpisodeCredit)
     cover = graphene.Field(EmbeddedImage)
 
-    def resolve_credits(self, args, context, info):
+    def resolve_credits(self, info):
         return show_models.EpisodeCredit.objects.filter(episode=self)
 
-    def resolve_cover(self, args, context, info):
+    def resolve_cover(self, info):
         return get_embedded_image(self, 'cover')
 
 
@@ -114,16 +128,16 @@ class Show(DjangoObjectType):
     episodes = graphene.List(ShowEpisode)
     cover = graphene.Field(EmbeddedImage)
 
-    def resolve_slots(self, args, context, info):
+    def resolve_slots(self, info):
         return self.slots.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
 
     # def resolve_series(self, args, context, info):
     #     return self.series.all()
 
-    def resolve_episodes(self, args, context, info):
+    def resolve_episodes(self, info):
         return self.episodes.all()
 
-    def resolve_cover(self, args, context, info):
+    def resolve_cover(self, info):
         return get_embedded_image(self, 'cover')
 
 
@@ -138,15 +152,104 @@ class ScheduleSlate(DjangoObjectType):
     slots = graphene.List(ShowSlot)
     shows = graphene.List(Show)
 
-    def resolve_shows(self, args, context, info):
+    def resolve_shows(self, info):
         return self.get_shows()
 
-    def resolve_slots(self, args, context, info):
-        return self.slots.all()
+    def resolve_slots(self, info):
+        return self.slots.select_related('show', 'show__category').all()
+
+
+class Image(DjangoObjectType):
+    resource = graphene.String()
+    media_id = graphene.Int()
+
+    def resolve_resource(self, info):
+        return self.file.name
+
+    def resolve_media_id(self, info):
+        return self.pk
+
+    class Meta:
+        model = core_models.UrfImage
+        interfaces = (graphene.relay.Node, )
+        only_fields = ('resource', 'media_id')
+
+
+class Article(DjangoObjectType):
+    class Meta:
+        model = article_models.Article
+        interfaces = (Node, )
+
+    article_id = graphene.Int()
+    associated_show = graphene.Field(Show)
+    authors = graphene.List(User)
+    featured_image = graphene.Field(Image)
+    body_html = graphene.String()
+
+    def resolve_article_id(self, info):
+        return self.pk
+
+    def resolve_associated_show(self, info):
+        return self.associated_show
+
+    def resolve_authors(self, info):
+        return self.authors.all()
+
+    def resolve_featured_image(self, info):
+        return self.featured_image
+
+    def resolve_body_html(self, info):
+        return expand_db_html(self.content)
+
+Article.Connection = connection_for_type(Article)
+
+
+class Event(DjangoObjectType):
+    class Meta:
+        model = events_models.Event
+        interfaces = (Node, )
+
+    event_id = graphene.Int()
+    # associated_show = graphene.Field(Show)
+    # authors = graphene.List(User)
+    featured_image = graphene.Field(Image)
+    description_html = graphene.String()
+
+    def resolve_event_id(self, info):
+        return self.pk
+
+    def resolve_associated_show(self, info):
+        return self.associated_show
+
+    def resolve_authors(self, info):
+        return self.authors.all()
+
+    def resolve_featured_image(self, info):
+        return self.featured_image
+
+    def resolve_description_html(self, info):
+        return expand_db_html(self.description)
+
+Event.Connection = connection_for_type(Event)
+
+
+class HomepageBlockObjectUnion(graphene.Union):
+    class Meta:
+        types = (Show, Event, Article)
+
+
+class HomepageBlock(DjangoObjectType):
+    class Meta:
+        model = home_models.HomepageBlock
+
+    object = graphene.Field(HomepageBlockObjectUnion)
+
+    def resolve_object(self, info):
+        return self.content_object
 
 
 class Login(graphene.Mutation):
-    class Input:
+    class Arguments:
         username = graphene.String()
         password = graphene.String()
 
@@ -166,6 +269,7 @@ class Login(graphene.Mutation):
 
 
 class Query(graphene.ObjectType):
+    homepage = graphene.List(HomepageBlock, )
     all_shows = DjangoConnectionField(Show, )
     current_slate = graphene.Field(ScheduleSlate, )
     all_slots = graphene.List(ShowSlot, )
@@ -174,38 +278,63 @@ class Query(graphene.ObjectType):
     show = graphene.Field(Show, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
 
+    # articles
+    all_articles = DjangoConnectionField(Article, )
+    article = graphene.Field(Article, article_id=graphene.Int())
+
+    # events
+    all_events = DjangoConnectionField(Event, )
+    event = graphene.Field(Event, event_id=graphene.Int())
+
     # Members
     all_members = graphene.List(User, )
     viewer = graphene.Field(User, description='The current user')
 
+    def resolve_homepage(self, info):
+        return home_models.HomepageBlock.objects.order_by('position', '-published_at')\
+            .distinct('position')
 
-    def resolve_show(self, args, context, info):
-        slug = args.get('slug')
+    def resolve_show(self, info, slug):
         return show_models.Show.objects.get(slug=slug)
 
-    def resolve_automation_show(self, args, context, info):
+    def resolve_automation_show(self, info):
         return show_models.ShowsConfiguration.objects.get().automation_show
 
-    def resolve_current_slate(self, args, context, info):
+    def resolve_current_slate(self, info):
         return show_models.ShowsConfiguration.objects.get().current_slate
 
-    def resolve_all_shows(self, args, context, info):
+    def resolve_all_shows(self, info):
         return show_models.Show.objects.all()
 
-    def resolve_all_members(self, args, context, info):
+    def resolve_all_members(self, info):
         return user_models.User.objects.all()
 
-    def resolve_all_slates(self, args, context, info):
+    def resolve_all_slates(self, info):
         return show_models.ScheduleSlate.objects.all()
 
-    def resolve_all_episodes(self, args, context, info):
+    def resolve_all_episodes(self, info):
         return show_models.ShowEpisode.objects.all()
 
-    def resolve_all_slots(self, args, context, info):
+    def resolve_all_slots(self, info):
         return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
 
-    def resolve_viewer(self, args, context, info):
-        return context.user if context.user.is_authenticated else None
+    def resolve_all_articles(self, info):
+        return article_models.Article.objects\
+            .filter(published_at__lte=timezone.now())\
+            .order_by('published_at')
+
+    def resolve_article(self, info, article_id):
+        return article_models.Article.objects.get(pk=article_id)
+
+    def resolve_all_events(self, info):
+        return events_models.Event.objects\
+            .order_by('start_date')
+
+    def resolve_event(self, info, event_id):
+        return events_models.Event.objects.get(pk=event_id)
+
+    def resolve_viewer(self, info):
+        return info.context.user if info.context.user.is_authenticated else None
 
 
 class Mutations(graphene.ObjectType):

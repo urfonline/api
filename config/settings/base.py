@@ -54,6 +54,22 @@ THIRD_PARTY_APPS = [
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
+
+    'wagtail.wagtailforms',
+    'wagtail.wagtailredirects',
+    'wagtail.wagtailembeds',
+    'wagtail.wagtailsites',
+    'wagtail.wagtailusers',
+    'wagtail.wagtailsnippets',
+    'wagtail.wagtaildocs',
+    'wagtail.wagtailimages',
+    'wagtail.wagtailsearch',
+    'wagtail.wagtailadmin',
+    'wagtail.wagtailcore',
+    'wagtail.api.v2',
+    'wagtail.contrib.modeladmin',
+    'modelcluster',
+    'taggit',
 ]
 
 LOCAL_APPS = [
@@ -61,6 +77,9 @@ LOCAL_APPS = [
     'api.core.apps.CoreConfig',
     'api.shows.apps.ShowsConfig',
     'api.schema.apps.SchemaConfig',
+    'api.events.apps.EventsConfig',
+    'api.articles.apps.ArticlesConfig',
+    'api.home.apps.HomeConfig',
     #'api.feed.apps.FeedConfig',
     #'api.articles.apps.ArticlesConfig',
 ]
@@ -79,7 +98,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'wagtail.wagtailcore.middleware.SiteMiddleware',
+    'wagtail.wagtailredirects.middleware.RedirectMiddleware',
 ]
+
+WAGTAIL_SITE_NAME = 'URF Online'
 
 # MIGRATIONS CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -291,6 +315,8 @@ ADMIN_URL = r'^admin/'
 GRAPHENE = {
     'SCHEMA': 'api.schema.schema.schema' # Where your Graphene schema lives
 }
+
+WAGTAILIMAGES_IMAGE_MODEL = 'core.UrfImage'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
