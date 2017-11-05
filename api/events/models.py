@@ -4,6 +4,8 @@ from wagtail.wagtailadmin.edit_handlers import MultiFieldPanel, FieldPanel, Fiel
 from wagtail.wagtailcore.fields import RichTextField
 from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
 
+from api.core.models import UrfImage
+
 
 class Event(models.Model):
     title = models.CharField(max_length=256)
@@ -19,7 +21,7 @@ class Event(models.Model):
     ussu_event = models.URLField(default='', blank=True, verbose_name='Students Union Event Page URL')
 
     featured_image = models.ForeignKey(
-        'core.UrfImage',
+        UrfImage,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

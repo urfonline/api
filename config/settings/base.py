@@ -73,8 +73,8 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'api.users.apps.UsersConfig',
     'api.core.apps.CoreConfig',
+    'api.users.apps.UsersConfig',
     'api.shows.apps.ShowsConfig',
     'api.schema.apps.SchemaConfig',
     'api.events.apps.EventsConfig',

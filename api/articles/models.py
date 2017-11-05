@@ -7,6 +7,7 @@ from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
 
 from api.core.models import TimeStampedModel
 from api.core.utils import upload_to_content
+from api.core.models import UrfImage
 
 ARTICLE_TONES = (
     ('INTERVIEW', 'Interview'),
@@ -29,7 +30,7 @@ class Article(TimeStampedModel, models.Model):
     title = models.CharField(max_length=120, blank=False, null=False)
     slug = models.SlugField()
 
-    featured_image = models.ForeignKey('core.UrfImage', blank=True, null=True)
+    featured_image = models.ForeignKey(UrfImage, blank=True, null=True)
 
     tone = models.CharField(max_length=20, default='BLOG', choices=ARTICLE_TONES)
 
