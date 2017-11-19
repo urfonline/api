@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import api.articles.models
 from django.conf import settings
-import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
@@ -33,7 +32,7 @@ class Migration(migrations.Migration):
                 ('featured_image_width', models.IntegerField(blank=True, null=True)),
                 ('featured_image_height', models.IntegerField(blank=True, null=True)),
                 ('tone', models.CharField(choices=[('INTERVIEW', 'Interview'), ('PREVIEW', 'Preview'), ('REVIEW', 'Review'), ('OPINION', 'Opinion'), ('ANNOUNCEMENT', 'Announcement'), ('BLOG', 'Blog')], default='BLOG', max_length=20)),
-                ('content', django.contrib.postgres.fields.jsonb.JSONField(default={})),
+                ('content', models.CharField(max_length=2, default='')),
                 ('associated_show', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='articles', to='shows.Show')),
                 ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='articles', to=settings.AUTH_USER_MODEL)),
             ],
