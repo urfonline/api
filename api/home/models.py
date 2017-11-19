@@ -25,7 +25,7 @@ class HomepageBlock(models.Model):
 
     position = models.CharField(max_length=12, choices=POSITIONS)
 
-    override_kicker = models.CharField(max_length=64, default='')
-    override_title = models.CharField(max_length=265, default='')
-    override_description = models.TextField(default='')
-    override_background_color = models.CharField(max_length=64, default='')
+    override_kicker = models.CharField(max_length=64, blank=True, default='')
+    override_title = models.CharField(max_length=265, blank=True, default='')
+    override_description = models.TextField(default='', blank=True)
+    override_background_color = models.CharField(max_length=64, blank=True, default='')
