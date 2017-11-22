@@ -4,11 +4,18 @@ from django.db import models
 
 POSITIONS = (
     ('HERO', 'Hero'),
+
     ('SEC_1', 'Secondary 1'),
     ('SEC_2', 'Secondary 2'),
+
     ('THIRD_1', 'Third 1'),
     ('THIRD_2', 'Third 2'),
     ('THIRD_3', 'Third 3'),
+
+    ('FOURTH_1', 'Fourth 1'),
+    ('FOURTH_2', 'Fourth 2'),
+    ('FOURTH_3', 'Fourth 3'),
+    ('FOURTH_4', 'Fourth 4'),
 )
 
 
