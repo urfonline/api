@@ -36,3 +36,6 @@ class HomepageBlock(models.Model):
     override_title = models.CharField(max_length=265, blank=True, default='')
     override_description = models.TextField(default='', blank=True)
     override_background_color = models.CharField(max_length=64, blank=True, default='')
+
+    def __str__(self):
+        return self.position
