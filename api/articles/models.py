@@ -31,6 +31,7 @@ class Article(TimeStampedModel, models.Model):
     slug = models.SlugField()
 
     featured_image = models.ForeignKey(UrfImage, blank=True, null=True)
+    short_description = models.TextField(blank=False)
 
     tone = models.CharField(max_length=20, default='BLOG', choices=ARTICLE_TONES)
 
@@ -51,6 +52,7 @@ class Article(TimeStampedModel, models.Model):
         ], heading='The basics'),
         MultiFieldPanel([
             ImageChooserPanel('featured_image'),
+            FieldPanel('short_description'),
             FieldPanel('content'),
         ], heading='Content'),
     ]
