@@ -248,6 +248,21 @@ class HomepageBlock(DjangoObjectType):
         return self.content_object
 
 
+class StaticSitePayload(graphene.ObjectType):
+    shows = graphene.List(Show)
+    events = graphene.List(Event)
+    articles = graphene.List(Article)
+
+    def resolve_shows(self, info):
+        return show_models.Show.objects.all()
+
+    def resolve_events(self, info):
+        return events_models.Event.objects.select_related('featured_image').all()
+
+    def resolve_articles(self, info):
+        return article_models.Article.objects.select_related('featured_image').all()
+
+
 class Login(graphene.Mutation):
     class Arguments:
         username = graphene.String()
@@ -277,6 +292,8 @@ class Query(graphene.ObjectType):
     all_episodes = graphene.List(ShowEpisode, )
     show = graphene.Field(Show, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
+
+    static_site_payload = graphene.Field(StaticSitePayload)
 
     # articles
     all_articles = DjangoConnectionField(Article, )
@@ -317,6 +334,9 @@ class Query(graphene.ObjectType):
 
     def resolve_all_slots(self, info):
         return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
+
+    def resolve_static_site_payload(self, info):
+        return True
 
     def resolve_all_articles(self, info):
         return article_models.Article.objects\
