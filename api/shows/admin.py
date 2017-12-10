@@ -14,6 +14,7 @@ class ShowCategoryAdmin(admin.ModelAdmin):
 @register(Show)
 class ShowAdmin(admin.ModelAdmin):
     list_display = ('name', 'category')
+    search_fields = ['name', ]
 
 
 @register(ShowSlot)
