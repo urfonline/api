@@ -341,7 +341,7 @@ class Query(graphene.ObjectType):
     def resolve_all_articles(self, info):
         return article_models.Article.objects\
             .filter(published_at__lte=timezone.now())\
-            .order_by('published_at')
+            .order_by('-published_at')
 
     def resolve_article(self, info, article_id):
         return article_models.Article.objects.get(pk=article_id)
