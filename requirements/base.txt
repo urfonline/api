@@ -54,5 +54,5 @@ graphene-django>=2.0
 django-solo
 django-cors-headers
 djangorestframework
-djangorestframework-jwt
+djangorestframework-jwt==1.11.0
 wagtail
