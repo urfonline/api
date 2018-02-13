@@ -55,4 +55,4 @@ django-solo
 django-cors-headers
 djangorestframework
 djangorestframework-jwt
-wagtail
+wagtail==1.13.1
