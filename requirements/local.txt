@@ -8,7 +8,7 @@ Sphinx==1.6.1
 django-extensions==1.9.9
 Werkzeug==0.12.2
 django-test-plus==1.0.22
-factory-boy==2.8.1
+factory-boy==2.11.1
 
 django-debug-toolbar==1.8
 
