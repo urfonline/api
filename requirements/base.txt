@@ -9,7 +9,7 @@ wheel==0.30.0
 django==1.10.8 # pyup: >=1.10,<1.11
 
 # Configuration
-django-environ==0.4.4
+django-environ==0.4.5
 whitenoise==3.3.0
 
 
