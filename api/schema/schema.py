@@ -312,7 +312,7 @@ class Query(graphene.ObjectType):
             .distinct('position')
 
     def resolve_show(self, info, slug):
-        return show_models.Show.objects.get(slug=slug)
+        return show_models.Show.objects.get(slug__iexact=slug)
 
     def resolve_automation_show(self, info):
         return show_models.ShowsConfiguration.objects.get().automation_show
