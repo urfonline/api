@@ -14,6 +14,7 @@ from api.articles import models as article_models
 from api.events import models as events_models
 from api.core import models as core_models
 from api.home import models as home_models
+from api.streams import models as stream_models
 
 
 def connection_for_type(_type):
@@ -108,6 +109,11 @@ class ShowEpisode(DjangoObjectType):
 class ShowSeries(DjangoObjectType):
     class Meta:
         model = show_models.ShowSeries
+
+
+class StreamConfiguration(DjangoObjectType):
+    class Meta:
+        model = stream_models.StreamConfiguration
 
 
 class User(DjangoObjectType):
@@ -290,6 +296,7 @@ class Query(graphene.ObjectType):
     all_slots = graphene.List(ShowSlot, )
     all_slates = graphene.List(ScheduleSlate, )
     all_episodes = graphene.List(ShowEpisode, )
+    all_streams = graphene.List(StreamConfiguration, )
     show = graphene.Field(Show, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
 
@@ -334,6 +341,9 @@ class Query(graphene.ObjectType):
 
     def resolve_all_slots(self, info):
         return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
+
+    def resolve_all_streams(self, info):
+        return stream_models.StreamConfiguration.objects.all()
 
     def resolve_static_site_payload(self, info):
         return True
