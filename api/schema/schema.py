@@ -298,6 +298,7 @@ class Query(graphene.ObjectType):
     all_episodes = graphene.List(ShowEpisode, )
     all_streams = graphene.List(StreamConfiguration, )
     show = graphene.Field(Show, slug=graphene.String())
+    stream = graphene.Field(StreamConfiguration, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
 
     static_site_payload = graphene.Field(StaticSitePayload)
@@ -320,6 +321,9 @@ class Query(graphene.ObjectType):
 
     def resolve_show(self, info, slug):
         return show_models.Show.objects.get(slug__iexact=slug)
+
+    def resolve_stream(self, info, slug):
+        return stream_models.StreamConfiguration.objects.get(slug__iexact=slug)
 
     def resolve_automation_show(self, info):
         return show_models.ShowsConfiguration.objects.get().automation_show
