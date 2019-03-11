@@ -105,7 +105,7 @@ class Show(TimeStampedModel, models.Model):
 class ScheduleSlate(TimeStampedModel, models.Model):
     name = models.CharField(max_length=5, null=False)
     notes = models.TextField(blank=True, null=True)
-    automation_show = models.ForeignKey(Show, blank=False, null=False)
+    automation_show = models.ForeignKey(Show, blank=False, null=True)
 
     def __str__(self):
         return self.name
