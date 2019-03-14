@@ -9,7 +9,7 @@ class StreamConfiguration(models.Model):
     port = models.IntegerField(blank=False, null=False)
     mountpoint = models.CharField(max_length=40, default="/stream", null=False)
     priority_online = models.IntegerField(blank=False, null=False, default=10, verbose_name="Online Priority")
-    priority_offline = models.IntegerField(blank=False, null=False, default=3, verbose_name="Offline Priority")
+    priority_offline = models.IntegerField(blank=False, null=False, default=3, verbose_name="Bed Priority")
     slate = models.ForeignKey(ScheduleSlate, null=True, blank=True, verbose_name="Active Slate")
 
     def __str__(self):

@@ -348,7 +348,10 @@ class Query(graphene.ObjectType):
         return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
 
     def resolve_all_streams(self, info):
-        return stream_models.StreamConfiguration.objects.select_related('slate').all()
+        return stream_models.StreamConfiguration.objects\
+            .select_related('slate')\
+            .prefetch_related('slate__slots', 'slate__slots__show')\
+            .all()
 
     def resolve_static_site_payload(self, info):
         return True
