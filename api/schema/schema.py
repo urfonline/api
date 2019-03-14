@@ -114,6 +114,7 @@ class ShowSeries(DjangoObjectType):
 class StreamConfiguration(DjangoObjectType):
     class Meta:
         model = stream_models.StreamConfiguration
+        interfaces = (Node, )
 
 
 class User(DjangoObjectType):
@@ -347,7 +348,7 @@ class Query(graphene.ObjectType):
         return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
 
     def resolve_all_streams(self, info):
-        return stream_models.StreamConfiguration.objects.all()
+        return stream_models.StreamConfiguration.objects.select_related('slate').all()
 
     def resolve_static_site_payload(self, info):
         return True
