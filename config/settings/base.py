@@ -80,6 +80,7 @@ LOCAL_APPS = [
     'api.events.apps.EventsConfig',
     'api.articles.apps.ArticlesConfig',
     'api.home.apps.HomeConfig',
+    'api.streams.apps.StreamConfig',
     #'api.feed.apps.FeedConfig',
     #'api.articles.apps.ArticlesConfig',
 ]
