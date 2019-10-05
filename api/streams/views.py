@@ -6,7 +6,7 @@ import requests
 def get_stream_status(request: HttpRequest, stream_slug: str):
     stream = StreamConfiguration.objects.get(slug=stream_slug)
 
-    r = requests.get('http://{stream.host}:{stream.port}/status-json.xsl'.format(stream=stream))
+    r = requests.get('http://{stream.host}:{stream.port}/status-json.xsl'.format(stream=stream), timeout=5)
     r.raise_for_status()
 
     return JsonResponse(r.json())
