@@ -3,7 +3,7 @@ from django.db import models
 from solo.models import SingletonModel
 
 from api.core.models import TimeStampedModel
-from api.core.utils import upload_to_content
+from api.core.utils import upload_to_content, validate_hex
 
 DAYS_OF_WEEK = (
     (0, 'Monday'),
@@ -83,7 +83,8 @@ class Show(TimeStampedModel, models.Model):
     banner_width = models.IntegerField(blank=True, null=True)
     banner_height = models.IntegerField(blank=True, null=True)
 
-    brand_color = models.CharField(max_length=6, verbose_name='Branding color', help_text='Color hex for show branding')
+    brand_color = models.CharField(max_length=6, verbose_name='Branding color', help_text='Color hex for show branding',
+                                   validators=[validate_hex])
     emoji_description = models.CharField(max_length=4, verbose_name='Emoji', help_text='Describe the show in a single emoji')
 
     has_interaction = models.BooleanField(default=False, verbose_name='Enable interaction',
