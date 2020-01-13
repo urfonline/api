@@ -16,6 +16,7 @@ from api.core import models as core_models
 from api.home import models as home_models
 from api.streams import models as stream_models
 
+from .mutations.applications_mutations import *
 
 def connection_for_type(_type):
     class Connection(graphene.Connection):
@@ -298,6 +299,7 @@ class Query(graphene.ObjectType):
     all_slates = graphene.List(ScheduleSlate, )
     all_episodes = graphene.List(ShowEpisode, )
     all_streams = graphene.List(StreamConfiguration, )
+    all_categories = graphene.List(ShowCategory, )
     show = graphene.Field(Show, slug=graphene.String())
     stream = graphene.Field(StreamConfiguration, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
@@ -353,6 +355,9 @@ class Query(graphene.ObjectType):
             .prefetch_related('slate__slots', 'slate__slots__show')\
             .all()
 
+    def resolve_all_categories(self, info):
+        return show_models.ShowCategory.objects.all()
+
     def resolve_static_site_payload(self, info):
         return True
 
@@ -377,6 +382,6 @@ class Query(graphene.ObjectType):
 
 class Mutations(graphene.ObjectType):
         login = Login.Field()
-
+        apply = SendApplicationMutation.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
