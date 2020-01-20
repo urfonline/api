@@ -1,4 +1,5 @@
 from django.db import models
+from solo.models import SingletonModel
 
 from api.core.models import TimeStampedModel
 from api.core.utils import validate_hex
@@ -39,6 +40,7 @@ class TimeSlotRequest(models.Model):
 class ShowApplication(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, verbose_name='Show Name', help_text='Name of the show')
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='show_applications')
+    contact_email = models.EmailField()
     short_description = models.CharField(max_length=90, verbose_name='Short description',
                                          help_text='A tiny one-sentence tag line for the show')
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
@@ -97,3 +99,10 @@ class ShowApplication(TimeStampedModel, models.Model):
     class Meta:
         verbose_name = 'Show Application'
         verbose_name_plural = 'Show Applications'
+
+class ShowApplicationSettings(SingletonModel):
+    applications_open = models.BooleanField(default=False)
+    apply_page_subtitle = models.TextField(blank=True, verbose_name="Application Page Subtitle")
+
+    class Meta:
+        verbose_name = "Show Applications Settings"

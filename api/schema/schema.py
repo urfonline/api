@@ -9,6 +9,7 @@ from taggit.managers import TaggableManager
 from wagtail.wagtailcore.rich_text import expand_db_html
 
 from api.shows import models as show_models
+from api.applications import models as application_models
 from api.users import models as user_models
 from api.articles import models as article_models
 from api.events import models as events_models
@@ -124,6 +125,10 @@ class User(DjangoObjectType):
         interfaces = (Node, BaseUser)
         only_fields = ('username', 'name', )
 
+class ShowAppplicationSettings(DjangoObjectType):
+    class Meta:
+        model = application_models.ShowApplicationSettings
+        interfaces = (Node, )
 
 class Show(DjangoObjectType):
     class Meta:
@@ -303,6 +308,7 @@ class Query(graphene.ObjectType):
     show = graphene.Field(Show, slug=graphene.String())
     stream = graphene.Field(StreamConfiguration, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
+    application_settings = graphene.Field(ShowAppplicationSettings, )
 
     static_site_payload = graphene.Field(StaticSitePayload)
 
@@ -375,6 +381,9 @@ class Query(graphene.ObjectType):
 
     def resolve_event(self, info, event_id):
         return events_models.Event.objects.get(pk=event_id)
+
+    def resolve_application_settings(self, info):
+        return application_models.ShowApplicationSettings.objects.get()
 
     def resolve_viewer(self, info):
         return info.context.user if info.context.user.is_authenticated else None

@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from api.applications.models import ShowApplication, TimeSlotRequest
+from api.applications.models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
 from api.shows.models import ShowCategory
 
 import graphene
@@ -49,12 +49,12 @@ class SendApplicationMutation(graphene.Mutation):
         social_instagram_handle=None, social_yotube_url=None,
         cover_filename=None, banner_filename=None
     ):
-        if not info.context.user.is_authenticated:
-            return SendApplicationMutation(success=False, problems=['You must be signed in to do this.'])
+        settings = ShowApplicationSettings.get_solo()
 
-        # TODO: Check if applications are open (probably in ShowConfiguration, lets not add another singleton)
+        if not settings.applications_open:
+            return SendApplicationMutation(success=False, problems=["Show applications are not open, try again later"])
 
-        show_category = ShowCategory.objects.get(name=category)
+        show_category = ShowCategory.objects.get(slug=category)
 
         first = TimeSlotRequest.objects.get_or_create(day=first_slot.day, hour=first_slot.hour)
         second = TimeSlotRequest.objects.get_or_create(day=second_slot.day, hour=second_slot.hour)

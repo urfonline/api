@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin import register
 from django.utils.translation import ugettext_lazy as _
+from solo.admin import SingletonModelAdmin
 
-from .models import ShowApplication, TimeSlotRequest
+from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
+
 
 class AcceptedListFilter(admin.SimpleListFilter):
     title = 'accepted status'
@@ -47,3 +49,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 @register(TimeSlotRequest)
 class TimeSlotRequestAdmin(admin.ModelAdmin):
     list_display = ('day', 'hour',)
+
+@register(ShowApplicationSettings)
+class ShowApplicationSettingsAdmin(SingletonModelAdmin):
+    pass

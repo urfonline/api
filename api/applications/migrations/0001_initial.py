@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                 ('created_at', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('updated_at', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='updated_at')),
                 ('name', models.CharField(help_text='Name of the show', max_length=80, verbose_name='Show Name')),
+                ('contact_email', models.EmailField()),
                 ('short_description', models.CharField(help_text='A tiny one-sentence tag line for the show', max_length=90, verbose_name='Short description')),
                 ('long_description', models.TextField(help_text='A long description for your show', verbose_name='Long description')),
                 ('cover', models.ImageField(blank=True, height_field='cover_height', null=True, upload_to=api.shows.models.upload_to_show_cover, width_field='cover_width')),
