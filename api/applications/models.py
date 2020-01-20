@@ -22,7 +22,7 @@ class TimeSlotRequest(models.Model):
     hour = models.IntegerField(choices=AVAILABLE_HOURS)
 
     def is_taken(self):
-        return self.accepted_application is not None
+        return hasattr(self, 'accepted_application')
 
     def fetch_slot(self, slate):
         return ShowSlot.objects.get(slate=slate, day=self.day,
@@ -95,6 +95,9 @@ class ShowApplication(TimeStampedModel, models.Model):
     @property
     def is_accepted(self):
         return self.assigned_slot is not None
+
+    def __str__(self):
+        return "Show Application: {0}".format(self.name)
 
     class Meta:
         verbose_name = 'Show Application'

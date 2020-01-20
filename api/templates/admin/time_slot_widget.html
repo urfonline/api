@@ -1,0 +1,10 @@
+<div class="TimeSlotWidget">
+  <p>
+    {{ slot_request }}
+    {% if taken %}
+      <span style="color: red;">[Taken]</span>
+    {% endif %}
+  </p>
+  <input type="hidden" name="{{ slot_name }}" value="{{ slot_request.pk }}"/>
+  <input type="submit" name="assign_{{ slot_name }}" value="Assign This Slot"/>
+</div>
