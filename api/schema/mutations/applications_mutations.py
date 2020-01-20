@@ -15,6 +15,7 @@ class TimeSlotInput(graphene.InputObjectType):
 class SendApplicationMutation(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
+        contact_email = graphene.String(required=True)
         short_description = graphene.String(required=True)
         long_description = graphene.String(required=True)
 
@@ -22,7 +23,7 @@ class SendApplicationMutation(graphene.Mutation):
         banner_filename = graphene.String()
 
         category = graphene.String(required=True)
-        brand_color = graphene.Int(required=True)
+        brand_color = graphene.String(required=True)
         emoji_description = graphene.String(required=True)
 
         first_slot = TimeSlotInput(required=True)
@@ -42,7 +43,7 @@ class SendApplicationMutation(graphene.Mutation):
     @staticmethod
     def mutate(
         root, info,
-        name, short_description, long_description,
+        name, contact_email, short_description, long_description,
         category, brand_color, emoji_description,
         first_slot, second_slot, third_slot,
         social_facebook_url=None, social_twitter_handle=None, social_mixcloud_handle=None, social_snapchat_handle=None,
@@ -55,10 +56,11 @@ class SendApplicationMutation(graphene.Mutation):
             return SendApplicationMutation(success=False, problems=["Show applications are not open, try again later"])
 
         show_category = ShowCategory.objects.get(slug=category)
+        brand_color = brand_color.lstrip('#')
 
-        first = TimeSlotRequest.objects.get_or_create(day=first_slot.day, hour=first_slot.hour)
-        second = TimeSlotRequest.objects.get_or_create(day=second_slot.day, hour=second_slot.hour)
-        third = TimeSlotRequest.objects.get_or_create(day=third_slot.day, hour=third_slot.hour)
+        first, _ = TimeSlotRequest.objects.get_or_create(day=first_slot.day, hour=first_slot.hour)
+        second, _ = TimeSlotRequest.objects.get_or_create(day=second_slot.day, hour=second_slot.hour)
+        third, _ = TimeSlotRequest.objects.get_or_create(day=third_slot.day, hour=third_slot.hour)
 
         cover = None
         if cover_filename is not None:
@@ -75,7 +77,7 @@ class SendApplicationMutation(graphene.Mutation):
             social_facebook_url=social_facebook_url, social_twitter_handle=social_twitter_handle,
             social_mixcloud_handle=social_mixcloud_handle, social_snapchat_handle=social_snapchat_handle,
             social_instagram_handle=social_instagram_handle, social_youtube_url=social_yotube_url,
-            cover=cover, banner=banner
+            cover=cover, banner=banner, contact_email=contact_email
         )
 
         try:
