@@ -9,6 +9,7 @@ from taggit.managers import TaggableManager
 from wagtail.wagtailcore.rich_text import expand_db_html
 
 from api.shows import models as show_models
+from api.applications import models as application_models
 from api.users import models as user_models
 from api.articles import models as article_models
 from api.events import models as events_models
@@ -16,6 +17,7 @@ from api.core import models as core_models
 from api.home import models as home_models
 from api.streams import models as stream_models
 
+from .mutations.applications_mutations import *
 
 def connection_for_type(_type):
     class Connection(graphene.Connection):
@@ -123,6 +125,10 @@ class User(DjangoObjectType):
         interfaces = (Node, BaseUser)
         only_fields = ('username', 'name', )
 
+class ShowAppplicationSettings(DjangoObjectType):
+    class Meta:
+        model = application_models.ShowApplicationSettings
+        interfaces = (Node, )
 
 class Show(DjangoObjectType):
     class Meta:
@@ -298,9 +304,11 @@ class Query(graphene.ObjectType):
     all_slates = graphene.List(ScheduleSlate, )
     all_episodes = graphene.List(ShowEpisode, )
     all_streams = graphene.List(StreamConfiguration, )
+    all_categories = graphene.List(ShowCategory, )
     show = graphene.Field(Show, slug=graphene.String())
     stream = graphene.Field(StreamConfiguration, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
+    application_settings = graphene.Field(ShowAppplicationSettings, )
 
     static_site_payload = graphene.Field(StaticSitePayload)
 
@@ -353,6 +361,9 @@ class Query(graphene.ObjectType):
             .prefetch_related('slate__slots', 'slate__slots__show')\
             .all()
 
+    def resolve_all_categories(self, info):
+        return show_models.ShowCategory.objects.all()
+
     def resolve_static_site_payload(self, info):
         return True
 
@@ -371,12 +382,15 @@ class Query(graphene.ObjectType):
     def resolve_event(self, info, event_id):
         return events_models.Event.objects.get(pk=event_id)
 
+    def resolve_application_settings(self, info):
+        return application_models.ShowApplicationSettings.objects.get()
+
     def resolve_viewer(self, info):
         return info.context.user if info.context.user.is_authenticated else None
 
 
 class Mutations(graphene.ObjectType):
         login = Login.Field()
-
+        apply = SendApplicationMutation.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

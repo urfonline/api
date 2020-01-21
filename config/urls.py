@@ -55,6 +55,7 @@ urlpatterns = [
     # User management
     url(r'^users/', include('api.users.urls', namespace='users')),
     url(r'^streams/', include('api.streams.urls', namespace='streams')),
+    url(r'^applications/', include('api.applications.urls', namespace='applications')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^graphql', csrf_exempt(GraphQLWithAuthView.as_view(graphiql=True))),
     url(r'^cms/', include(wagtailadmin_urls)),

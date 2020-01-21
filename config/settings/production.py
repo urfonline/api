@@ -63,7 +63,10 @@ X_FRAME_OPTIONS = 'DENY'
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['api.urfonline.com', ])
 # END SITE CONFIGURATION
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = ["urfonline.com"]
+CSRF_TRUSTED_ORIGINS = ["urfonline.com"]
+CORS_ALLOW_CREDENTIALS = True
 
 
 INSTALLED_APPS += ['gunicorn', ]
