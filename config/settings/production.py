@@ -64,8 +64,8 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['api.urfonline.com', ]
 # END SITE CONFIGURATION
 
 CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = ["urfonline.com"]
-CSRF_TRUSTED_ORIGINS = ["urfonline.com"]
+CORS_ORIGIN_WHITELIST = ["urfonline.com", "www.urfonline.com"]
+CSRF_TRUSTED_ORIGINS = [".urfonline.com"]
 CORS_ALLOW_CREDENTIALS = True
 
 
