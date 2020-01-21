@@ -48,7 +48,7 @@ class SendApplicationMutation(graphene.Mutation):
         first_slot, second_slot, third_slot,
         social_facebook_url=None, social_twitter_handle=None, social_mixcloud_handle=None, social_snapchat_handle=None,
         social_instagram_handle=None, social_yotube_url=None,
-        cover_filename=None, banner_filename=None
+        cover_filename="", banner_filename=""
     ):
         settings = ShowApplicationSettings.get_solo()
 
@@ -63,11 +63,11 @@ class SendApplicationMutation(graphene.Mutation):
         third, _ = TimeSlotRequest.objects.get_or_create(day=third_slot.day, hour=third_slot.hour)
 
         cover = None
-        if cover_filename is not None:
+        if cover_filename.strip():
             cover = os.path.join("content/shows/covers", os.path.basename(cover_filename))
 
         banner = None
-        if banner_filename is not None:
+        if banner_filename.strip():
             banner = os.path.join("content/shows/banners", os.path.basename(banner_filename))
 
         application = ShowApplication(

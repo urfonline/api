@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from solo.models import SingletonModel
 
 from api.core.models import TimeStampedModel
@@ -102,6 +104,11 @@ class ShowApplication(TimeStampedModel, models.Model):
     class Meta:
         verbose_name = 'Show Application'
         verbose_name_plural = 'Show Applications'
+
+@receiver(pre_delete, sender=ShowApplication)
+def deletion_hook(sender, *, instance, **kwargs):
+    instance.cover.delete(False)
+    instance.banner.delete(False)
 
 class ShowApplicationSettings(SingletonModel):
     applications_open = models.BooleanField(default=False)

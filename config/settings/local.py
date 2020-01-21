@@ -17,7 +17,9 @@ DEBUG = env.bool('DJANGO_DEBUG', default=True)
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 ALLOWED_HOSTS = ['*']
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = ["localhost:8080", "urfonline.com"]
+CSRF_TRUSTED_ORIGINS = ["localhost", ".local"]
+CORS_ALLOW_CREDENTIALS = True
 
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
