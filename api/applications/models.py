@@ -105,11 +105,6 @@ class ShowApplication(TimeStampedModel, models.Model):
         verbose_name = 'Show Application'
         verbose_name_plural = 'Show Applications'
 
-@receiver(pre_delete, sender=ShowApplication)
-def deletion_hook(sender, *, instance, **kwargs):
-    instance.cover.delete(False)
-    instance.banner.delete(False)
-
 class ShowApplicationSettings(SingletonModel):
     applications_open = models.BooleanField(default=False)
     apply_page_subtitle = models.TextField(blank=True, verbose_name="Application Page Subtitle")
