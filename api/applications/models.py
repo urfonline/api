@@ -42,12 +42,19 @@ class TimeSlotRequest(models.Model):
 class ShowApplication(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, verbose_name='Show Name', help_text='Name of the show')
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='show_applications')
-    contact_email = models.EmailField()
+
+    host_name = models.CharField(max_length=80, verbose_name='Host\'s Name', blank=True)
+    contact_email = models.EmailField(verbose_name='Host Contact Email')
+    contact_phone = models.CharField(max_length=20, verbose_name='Host Contact Phone', blank=True)
+    producer_name = models.CharField(max_length=80, verbose_name='Producer\'s Name', blank=True)
+
     short_description = models.CharField(max_length=90, verbose_name='Short description',
                                          help_text='A tiny one-sentence tag line for the show')
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
     category = models.ForeignKey(ShowCategory, blank=False, null=True, on_delete=models.SET_NULL,
                                  related_name='show_applications')
+    biweekly = models.BooleanField(verbose_name='Bi-weekly show?', default=False)
+    new_show = models.BooleanField(verbose_name='New show?', default=False)
 
     cover = models.ImageField(null=True, blank=True, upload_to=upload_to_show_cover, width_field='cover_width',
                               height_field='cover_height')

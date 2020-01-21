@@ -15,9 +15,15 @@ class TimeSlotInput(graphene.InputObjectType):
 class SendApplicationMutation(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
-        contact_email = graphene.String(required=True)
         short_description = graphene.String(required=True)
         long_description = graphene.String(required=True)
+        biweekly = graphene.Boolean()
+        new = graphene.Boolean()
+
+        host_name = graphene.String(required=True)
+        contact_email = graphene.String(required=True)
+        contact_phone = graphene.String(required=True)
+        producer_name = graphene.String()
 
         cover_filename = graphene.String()
         banner_filename = graphene.String()
@@ -43,7 +49,8 @@ class SendApplicationMutation(graphene.Mutation):
     @staticmethod
     def mutate(
         root, info,
-        name, contact_email, short_description, long_description,
+        name, short_description, long_description, biweekly, new,
+        host_name, contact_email, contact_phone, producer_name,
         category, brand_color, emoji_description,
         first_slot, second_slot, third_slot,
         social_facebook_url=None, social_twitter_handle=None, social_mixcloud_handle=None, social_snapchat_handle=None,
@@ -73,11 +80,13 @@ class SendApplicationMutation(graphene.Mutation):
         application = ShowApplication(
             name=name, short_description=short_description, long_description=long_description,
             category=show_category, brand_color=brand_color, emoji_description=emoji_description,
+            biweekly=biweekly, new_show=new, host_name=host_name, contact_phone=contact_phone,
+            contact_email=contact_email, producer_name=producer_name,
             first_slot_choice=first, second_slot_choice=second, third_slot_choice=third,
             social_facebook_url=social_facebook_url, social_twitter_handle=social_twitter_handle,
             social_mixcloud_handle=social_mixcloud_handle, social_snapchat_handle=social_snapchat_handle,
             social_instagram_handle=social_instagram_handle, social_youtube_url=social_yotube_url,
-            cover=cover, banner=banner, contact_email=contact_email
+            cover=cover, banner=banner
         )
 
         try:
