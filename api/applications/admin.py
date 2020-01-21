@@ -57,7 +57,7 @@ class ShowApplicationForm(ModelForm):
 @register(ShowApplication)
 class ShowApplicationAdmin(admin.ModelAdmin):
     form = ShowApplicationForm
-    list_display = ('name', 'user_name', 'category',)
+    list_display = ('name', 'host_name', 'category',)
     list_select_related = ('owner', 'category',)
     search_fields = ('name', 'owner__name',)
     list_filter = ('category', AcceptedListFilter,)
@@ -65,20 +65,23 @@ class ShowApplicationAdmin(admin.ModelAdmin):
     actions = ('make_shows',)
 
     readonly_fields = (
-        'name',
+        'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
     )
 
     fieldsets = (
+        ('Applicant Info', {
+            'fields': ('host_name', 'producer_name', 'contact_email', 'contact_phone', 'new_show')
+        }),
         ('Basic Info', {
             'fields': ('name', 'short_description', 'long_description', 'brand_color', 'emoji_description', 'category')
         }),
         ('Slot Choices', {
-            'fields': ('first_slot_choice', 'second_slot_choice', 'third_slot_choice', 'assigned_slot')
+            'fields': ('biweekly', 'first_slot_choice', 'second_slot_choice', 'third_slot_choice', 'assigned_slot')
         }),
         ('Miscellaneous', {
-            'fields': ('contact_email', 'cover', 'banner',
+            'fields': ('cover', 'banner',
                        'social_facebook_url', 'social_twitter_handle', 'social_mixcloud_handle', 'social_youtube_url',
                        'social_snapchat_handle', 'social_instagram_handle', 'social_soundcloud_handle',)
         }),

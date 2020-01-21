@@ -6,5 +6,5 @@
     {% endif %}
   </p>
   <input type="hidden" name="{{ slot_name }}" value="{{ slot_request.pk }}"/>
-  <input type="submit" name="assign_{{ slot_name }}" value="Assign This Slot"/>
+  <input type="submit" name="assign_{{ slot_name }}" value="Assign This Slot" {% if taken %} disabled {% endif %}/>
 </div>
