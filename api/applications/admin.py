@@ -5,6 +5,8 @@ from django.contrib.admin import register
 from django.forms import Widget, ModelForm
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from solo.admin import SingletonModelAdmin
@@ -28,6 +30,24 @@ class AcceptedListFilter(admin.SimpleListFilter):
             return queryset.filter(assigned_slot__isnull=False)
         if self.value() == '0':
             return queryset.filter(assigned_slot__isnull=True)
+
+        return queryset
+
+class HasShowListFilter(admin.SimpleListFilter):
+    title = 'show presence'
+    parameter_name = 'has_show'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('1', _('Show attached')),
+            ('0', _('Show not yet attached')),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(connected_show__isnull=False)
+        elif self.value() == '0':
+            return queryset.filter(connected_show__isnull=True)
 
         return queryset
 
@@ -58,13 +78,17 @@ class ShowApplicationForm(ModelForm):
             'third_slot_choice': TimeSlotWidget,
         }
 
+        help_texts = {
+            'link_to_connected_show': 'When this slot has been turned into a show, it will be linked here',
+        }
+
 @register(ShowApplication)
 class ShowApplicationAdmin(admin.ModelAdmin):
     form = ShowApplicationForm
     list_display = ('name', 'created_at', 'host_name', 'category',)
     list_select_related = ('owner', 'category',)
     search_fields = ('name', 'host_name', 'producer_name',)
-    list_filter = ('category', AcceptedListFilter,)
+    list_filter = ('category', AcceptedListFilter, HasShowListFilter,)
 
     actions = ('make_shows',)
 
@@ -72,7 +96,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
-        'created_at', 'connected_show'
+        'created_at', 'link_to_connected_show'
     )
 
     fieldsets = (
@@ -89,9 +113,19 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             'fields': ('cover', 'banner',
                        'social_facebook_url', 'social_twitter_handle', 'social_mixcloud_handle', 'social_youtube_url',
                        'social_snapchat_handle', 'social_instagram_handle', 'social_soundcloud_handle',
-                       'connected_show')
+                       'link_to_connected_show')
         }),
     )
+
+    def link_to_connected_show(self, obj):
+        if not obj.connected_show:
+            return self.admin_site.empty_value_display
+
+        link = reverse('admin:shows_show_change', args=[obj.connected_show.id])
+
+        return format_html('<a href="{}">{}</a>', link, obj.connected_show.name)
+
+    link_to_connected_show.short_description = 'Connected show'
 
     def make_shows(self, request, queryset):
         if request.POST.get("post"):

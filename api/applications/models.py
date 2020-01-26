@@ -109,6 +109,10 @@ class ShowApplication(TimeStampedModel, models.Model):
     def is_accepted(self):
         return self.assigned_slot is not None
 
+    @property
+    def has_show(self):
+        return self.connected_show is not None
+
     def make_show(self):
         return Show.objects.create(
             name=self.name, slug=slugify(self.name), short_description=self.short_description,
