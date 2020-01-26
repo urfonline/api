@@ -240,9 +240,38 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 
         return super().response_change(request, obj)
 
+class SlotTakenListFilter(admin.SimpleListFilter):
+    title = 'filled status'
+    parameter_name = 'is_taken'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('1', _('Taken')),
+            ('0', _('Free')),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(accepted_application__isnull=False)
+        elif self.value() == '0':
+            return queryset.filter(accepted_application__isnull=True)
+
+        return queryset
+
 @register(TimeSlotRequest)
 class TimeSlotRequestAdmin(admin.ModelAdmin):
     list_display = ('day', 'hour',)
+    list_filter = ('day', SlotTakenListFilter,)
+    readonly_fields = ('linked_application',)
+
+    def linked_application(self, obj):
+        if not obj.accepted_application:
+            return self.admin_site.empty_value_display
+
+        link = reverse('admin:applications_showapplication_change', args=[obj.accepted_application.id])
+        return format_html('<a href="{}">{}</a>', link, obj.accepted_application.name)
+
+    linked_application.short_description = 'Accepted application'
 
 @register(ShowApplicationSettings)
 class ShowApplicationSettingsAdmin(SingletonModelAdmin):
