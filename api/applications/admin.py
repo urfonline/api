@@ -1,11 +1,15 @@
-from django.contrib import admin
+from datetime import time, timedelta, datetime, date
+
+from django.contrib import admin, messages
 from django.contrib.admin import register
 from django.forms import Widget, ModelForm
 from django.template.loader import render_to_string
+from django.template.response import TemplateResponse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from solo.admin import SingletonModelAdmin
 
+from api.shows.models import ScheduleSlate, ShowSlot, Show
 from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
 
 
@@ -68,7 +72,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
-        'created_at'
+        'created_at', 'connected_show'
     )
 
     fieldsets = (
@@ -84,14 +88,86 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         ('Miscellaneous', {
             'fields': ('cover', 'banner',
                        'social_facebook_url', 'social_twitter_handle', 'social_mixcloud_handle', 'social_youtube_url',
-                       'social_snapchat_handle', 'social_instagram_handle', 'social_soundcloud_handle',)
+                       'social_snapchat_handle', 'social_instagram_handle', 'social_soundcloud_handle',
+                       'connected_show')
         }),
     )
 
     def make_shows(self, request, queryset):
-        pass
+        if request.POST.get("post"):
+            # Do the conversion!
+            self.create_shows_in(request, queryset)
+            return None
+
+        slates = ScheduleSlate.objects.all()
+
+        ctx = dict(
+            self.admin_site.each_context(request),
+            slates=slates,
+            opts=self.model._meta,
+            media=self.media,
+            action_checkbox_name=admin.ACTION_CHECKBOX_NAME,
+            queryset=queryset,
+        )
+
+        return TemplateResponse(request, "admin/slate_picker.html", context=ctx)
 
     make_shows.short_description = 'Turn selected applications into shows'
+
+    def create_shows_in(self, request, queryset):
+        slate_pk = request.POST.get("slate")
+        slate = ScheduleSlate.objects.get(pk=slate_pk)
+
+        failed_apps = 0
+        for show_app in queryset:
+            show_app: ShowApplication = show_app
+            if not show_app.is_accepted:
+                failed_apps += 1
+                continue
+
+            # Show findin' logic! Look for any shows with the same name
+            try:
+                if show_app.connected_show is not None:
+                    show = show_app.connected_show
+                else:
+                    show = Show.objects.get(name__iexact=show_app.name)
+
+                show_app.update_show(show)
+            except Show.MultipleObjectsReturned:
+                # Multiple shows with the same name exist! Bail out.
+                failed_apps += 1
+                continue
+            except Show.DoesNotExist:
+                show = show_app.make_show()
+
+            time_slot = show_app.assigned_slot
+            start_time = time(hour=time_slot.hour)
+            end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
+
+            slot, created = ShowSlot.objects.get_or_create(
+                defaults=dict(show=show),
+                slate=slate,
+                day=time_slot.day,
+                start_time=start_time,
+                end_time=end_time,
+            )
+
+            if not created:
+                slot.show = show
+                slot.save(update_fields=['show'])
+
+            show_app.connected_show = show
+            show_app.save(update_fields=['connected_show'])
+
+        if failed_apps > 0:
+            self.message_user(
+                request,
+                "{0}/{1} applications were skipped due to problems".format(failed_apps, queryset.count()),
+                level=messages.WARNING
+            )
+        else:
+            self.message_user(request, "Turned {0} applications into shows".format(queryset.count()),
+                              level=messages.SUCCESS)
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name.endswith('_slot_choice'):
