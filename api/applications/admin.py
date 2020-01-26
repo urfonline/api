@@ -59,7 +59,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
     form = ShowApplicationForm
     list_display = ('name', 'created_at', 'host_name', 'category',)
     list_select_related = ('owner', 'category',)
-    search_fields = ('name', 'owner__name',)
+    search_fields = ('name', 'host_name', 'producer_name',)
     list_filter = ('category', AcceptedListFilter,)
 
     actions = ('make_shows',)
