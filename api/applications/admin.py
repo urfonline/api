@@ -57,7 +57,7 @@ class ShowApplicationForm(ModelForm):
 @register(ShowApplication)
 class ShowApplicationAdmin(admin.ModelAdmin):
     form = ShowApplicationForm
-    list_display = ('name', 'host_name', 'category',)
+    list_display = ('name', 'created_at', 'host_name', 'category',)
     list_select_related = ('owner', 'category',)
     search_fields = ('name', 'owner__name',)
     list_filter = ('category', AcceptedListFilter,)
@@ -68,11 +68,12 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
+        'created_at'
     )
 
     fieldsets = (
         ('Applicant Info', {
-            'fields': ('host_name', 'producer_name', 'contact_email', 'contact_phone', 'new_show')
+            'fields': ('host_name', 'producer_name', 'contact_email', 'contact_phone', 'created_at', 'new_show')
         }),
         ('Basic Info', {
             'fields': ('name', 'short_description', 'long_description', 'brand_color', 'emoji_description', 'category')
