@@ -52,6 +52,11 @@ class HasShowListFilter(admin.SimpleListFilter):
         return queryset
 
 class TimeSlotWidget(Widget):
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+
+        self.show_application = None
+
     def render(self, name, value, attrs=None):
         if value is None:
             return ""
@@ -63,12 +68,20 @@ class TimeSlotWidget(Widget):
             'slot_name': name,
         }
 
-        # if slot.is_taken():
-        #     context['taken_by_self'] = slot.accepted_application ==
+        if slot.is_taken():
+            context['taken_by_self'] = slot.accepted_application == self.show_application
 
         return mark_safe(render_to_string('admin/time_slot_widget.html', context))
 
 class ShowApplicationForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        obj = self.instance
+        self.fields['first_slot_choice'].widget.show_application = obj
+        self.fields['second_slot_choice'].widget.show_application = obj
+        self.fields['third_slot_choice'].widget.show_application = obj
+
     class Meta:
         model = ShowApplication
         fields = '__all__'

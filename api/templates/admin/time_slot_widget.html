@@ -1,7 +1,9 @@
 <div class="TimeSlotWidget">
   <p>
     {{ slot_request }}
-    {% if taken %}
+    {% if taken_by_self %}
+      <span style="color: forestgreen;">[Assigned]</span>
+    {% elif taken %}
       <span style="color: red;">[Taken]</span>
     {% endif %}
   </p>
