@@ -1,6 +1,6 @@
 <div class="TimeSlotWidget">
   <p>
-    {{ slot_request }}
+    <a href="{{ slot_link }}">{{ slot_request }}</a>
     {% if taken_by_self %}
       <span style="color: forestgreen;">[Assigned]</span>
     {% elif taken %}

@@ -64,6 +64,7 @@ class TimeSlotWidget(Widget):
         slot = TimeSlotRequest.objects.get(pk=value)
         context = {
             'slot_request': slot,
+            'slot_link': reverse('admin:applications_timeslotrequest_change', args=[slot.pk]),
             'taken': slot.is_taken(),
             'slot_name': name,
         }
