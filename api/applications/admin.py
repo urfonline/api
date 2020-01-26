@@ -89,6 +89,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
     list_select_related = ('owner', 'category',)
     search_fields = ('name', 'host_name', 'producer_name',)
     list_filter = ('category', AcceptedListFilter, HasShowListFilter,)
+    ordering = ('-created_at',)
 
     actions = ('make_shows',)
 
