@@ -1,11 +1,10 @@
 from django.db import models
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
+from django.utils.text import slugify
 from solo.models import SingletonModel
 
 from api.core.models import TimeStampedModel
 from api.core.utils import validate_hex
-from api.shows.models import ShowCategory, upload_to_show_cover, upload_to_show_banner, DAYS_OF_WEEK, ShowSlot
+from api.shows.models import ShowCategory, upload_to_show_cover, upload_to_show_banner, DAYS_OF_WEEK, ShowSlot, Show
 from api.users.models import User
 
 from datetime import time, datetime
@@ -38,6 +37,7 @@ class TimeSlotRequest(models.Model):
     class Meta:
         verbose_name = 'Time Slot Request'
         verbose_name_plural = 'Time Slot Requests'
+        unique_together = ('day', 'hour',)
 
 class ShowApplication(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, verbose_name='Show Name', help_text='Name of the show')
@@ -93,6 +93,10 @@ class ShowApplication(TimeStampedModel, models.Model):
                                          verbose_name='Assigned Slot',
                                          help_text='Exec\'s slot choice for this application',
                                          related_name='accepted_application')
+    connected_show = models.OneToOneField(Show, blank=True, null=True, on_delete=models.SET_NULL,
+                                          verbose_name='Connected Show',
+                                          help_text='When this slot has been turned into a show, it shows up here',
+                                          related_name='application')
 
     @property
     def user_name(self):
@@ -104,6 +108,33 @@ class ShowApplication(TimeStampedModel, models.Model):
     @property
     def is_accepted(self):
         return self.assigned_slot is not None
+
+    @property
+    def has_show(self):
+        return self.connected_show is not None
+
+    def make_show(self):
+        return Show.objects.create(
+            name=self.name, slug=slugify(self.name), short_description=self.short_description,
+            long_description=self.long_description, category=self.category, cover=self.cover,
+            banner=self.banner, brand_color=self.brand_color, emoji_description=self.emoji_description,
+            social_facebook_url=self.social_facebook_url, social_youtube_url=self.social_youtube_url,
+            social_twitter_handle=self.social_twitter_handle, social_mixcloud_handle=self.social_mixcloud_handle,
+            social_snapchat_handle=self.social_snapchat_handle, social_soundcloud_handle=self.social_soundcloud_handle,
+            social_instagram_handle=self.social_instagram_handle
+        )
+
+    def update_show(self, show: Show):
+        keys = ('short_description', 'long_description', 'category', 'cover', 'banner', 'brand_color',
+                'emoji_description', 'social_facebook_url', 'social_youtube_url', 'social_twitter_handle',
+                'social_mixcloud_handle', 'social_snapchat_handle', 'social_soundcloud_handle',
+                'social_instagram_handle')
+
+        for key in keys:
+            if getattr(self, key):
+                setattr(show, key, getattr(self, key))
+
+        show.save(update_fields=keys)
 
     def __str__(self):
         return "Show Application: {0}".format(self.name)

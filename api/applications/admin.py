@@ -1,11 +1,17 @@
-from django.contrib import admin
+from datetime import time, timedelta, datetime, date
+
+from django.contrib import admin, messages
 from django.contrib.admin import register
 from django.forms import Widget, ModelForm
 from django.template.loader import render_to_string
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from solo.admin import SingletonModelAdmin
 
+from api.shows.models import ScheduleSlate, ShowSlot, Show
 from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
 
 
@@ -27,7 +33,30 @@ class AcceptedListFilter(admin.SimpleListFilter):
 
         return queryset
 
+class HasShowListFilter(admin.SimpleListFilter):
+    title = 'show presence'
+    parameter_name = 'has_show'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('1', _('Show attached')),
+            ('0', _('Show not yet attached')),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(connected_show__isnull=False)
+        elif self.value() == '0':
+            return queryset.filter(connected_show__isnull=True)
+
+        return queryset
+
 class TimeSlotWidget(Widget):
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+
+        self.show_application = None
+
     def render(self, name, value, attrs=None):
         if value is None:
             return ""
@@ -39,12 +68,20 @@ class TimeSlotWidget(Widget):
             'slot_name': name,
         }
 
-        # if slot.is_taken():
-        #     context['taken_by_self'] = slot.accepted_application ==
+        if slot.is_taken():
+            context['taken_by_self'] = slot.accepted_application == self.show_application
 
         return mark_safe(render_to_string('admin/time_slot_widget.html', context))
 
 class ShowApplicationForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        obj = self.instance
+        self.fields['first_slot_choice'].widget.show_application = obj
+        self.fields['second_slot_choice'].widget.show_application = obj
+        self.fields['third_slot_choice'].widget.show_application = obj
+
     class Meta:
         model = ShowApplication
         fields = '__all__'
@@ -54,13 +91,18 @@ class ShowApplicationForm(ModelForm):
             'third_slot_choice': TimeSlotWidget,
         }
 
+        help_texts = {
+            'link_to_connected_show': 'When this slot has been turned into a show, it will be linked here',
+        }
+
 @register(ShowApplication)
 class ShowApplicationAdmin(admin.ModelAdmin):
     form = ShowApplicationForm
-    list_display = ('name', 'host_name', 'category',)
+    list_display = ('name', 'created_at', 'host_name', 'category',)
     list_select_related = ('owner', 'category',)
-    search_fields = ('name', 'owner__name',)
-    list_filter = ('category', AcceptedListFilter,)
+    search_fields = ('name', 'host_name', 'producer_name',)
+    list_filter = ('category', AcceptedListFilter, HasShowListFilter,)
+    ordering = ('-created_at',)
 
     actions = ('make_shows',)
 
@@ -68,11 +110,12 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
+        'created_at', 'link_to_connected_show'
     )
 
     fieldsets = (
         ('Applicant Info', {
-            'fields': ('host_name', 'producer_name', 'contact_email', 'contact_phone', 'new_show')
+            'fields': ('host_name', 'producer_name', 'contact_email', 'contact_phone', 'created_at', 'new_show')
         }),
         ('Basic Info', {
             'fields': ('name', 'short_description', 'long_description', 'brand_color', 'emoji_description', 'category')
@@ -83,14 +126,96 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         ('Miscellaneous', {
             'fields': ('cover', 'banner',
                        'social_facebook_url', 'social_twitter_handle', 'social_mixcloud_handle', 'social_youtube_url',
-                       'social_snapchat_handle', 'social_instagram_handle', 'social_soundcloud_handle',)
+                       'social_snapchat_handle', 'social_instagram_handle', 'social_soundcloud_handle',
+                       'link_to_connected_show')
         }),
     )
 
+    def link_to_connected_show(self, obj):
+        if not obj.connected_show:
+            return self.admin_site.empty_value_display
+
+        link = reverse('admin:shows_show_change', args=[obj.connected_show.id])
+
+        return format_html('<a href="{}">{}</a>', link, obj.connected_show.name)
+
+    link_to_connected_show.short_description = 'Connected show'
+
     def make_shows(self, request, queryset):
-        pass
+        if request.POST.get("post"):
+            # Do the conversion!
+            self.create_shows_in(request, queryset)
+            return None
+
+        slates = ScheduleSlate.objects.all()
+
+        ctx = dict(
+            self.admin_site.each_context(request),
+            slates=slates,
+            opts=self.model._meta,
+            media=self.media,
+            action_checkbox_name=admin.ACTION_CHECKBOX_NAME,
+            queryset=queryset,
+        )
+
+        return TemplateResponse(request, "admin/slate_picker.html", context=ctx)
 
     make_shows.short_description = 'Turn selected applications into shows'
+
+    def create_shows_in(self, request, queryset):
+        slate_pk = request.POST.get("slate")
+        slate = ScheduleSlate.objects.get(pk=slate_pk)
+
+        failed_apps = 0
+        for show_app in queryset:
+            show_app: ShowApplication = show_app
+            if not show_app.is_accepted:
+                failed_apps += 1
+                continue
+
+            # Show findin' logic! Look for any shows with the same name
+            try:
+                if show_app.connected_show is not None:
+                    show = show_app.connected_show
+                else:
+                    show = Show.objects.get(name__iexact=show_app.name)
+
+                show_app.update_show(show)
+            except Show.MultipleObjectsReturned:
+                # Multiple shows with the same name exist! Bail out.
+                failed_apps += 1
+                continue
+            except Show.DoesNotExist:
+                show = show_app.make_show()
+
+            time_slot = show_app.assigned_slot
+            start_time = time(hour=time_slot.hour)
+            end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
+
+            slot, created = ShowSlot.objects.get_or_create(
+                defaults=dict(show=show),
+                slate=slate,
+                day=time_slot.day,
+                start_time=start_time,
+                end_time=end_time,
+            )
+
+            if not created:
+                slot.show = show
+                slot.save(update_fields=['show'])
+
+            show_app.connected_show = show
+            show_app.save(update_fields=['connected_show'])
+
+        if failed_apps > 0:
+            self.message_user(
+                request,
+                "{0}/{1} applications were skipped due to problems".format(failed_apps, queryset.count()),
+                level=messages.WARNING
+            )
+        else:
+            self.message_user(request, "Turned {0} applications into shows".format(queryset.count()),
+                              level=messages.SUCCESS)
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name.endswith('_slot_choice'):
@@ -115,9 +240,38 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 
         return super().response_change(request, obj)
 
+class SlotTakenListFilter(admin.SimpleListFilter):
+    title = 'filled status'
+    parameter_name = 'is_taken'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('1', _('Taken')),
+            ('0', _('Free')),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(accepted_application__isnull=False)
+        elif self.value() == '0':
+            return queryset.filter(accepted_application__isnull=True)
+
+        return queryset
+
 @register(TimeSlotRequest)
 class TimeSlotRequestAdmin(admin.ModelAdmin):
     list_display = ('day', 'hour',)
+    list_filter = ('day', SlotTakenListFilter,)
+    readonly_fields = ('linked_application',)
+
+    def linked_application(self, obj):
+        if not obj.accepted_application:
+            return self.admin_site.empty_value_display
+
+        link = reverse('admin:applications_showapplication_change', args=[obj.accepted_application.id])
+        return format_html('<a href="{}">{}</a>', link, obj.accepted_application.name)
+
+    linked_application.short_description = 'Accepted application'
 
 @register(ShowApplicationSettings)
 class ShowApplicationSettingsAdmin(SingletonModelAdmin):
