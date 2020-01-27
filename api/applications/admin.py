@@ -292,7 +292,9 @@ class SlotTakenListFilter(admin.SimpleListFilter):
 class TimeSlotRequestAdmin(admin.ModelAdmin):
     list_display = ('day', 'hour',)
     list_filter = ('day', SlotTakenListFilter,)
+    ordering = ('day', 'hour',)
     readonly_fields = ('linked_application',)
+    fields = ('day', 'hour', 'linked_application', 'biweekly_partner',)
 
     def linked_application(self, obj):
         if not obj.accepted_application:
