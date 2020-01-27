@@ -141,7 +141,7 @@ class ShowApplication(TimeStampedModel, models.Model):
         show.save(update_fields=keys)
 
     def __str__(self):
-        return "Show Application: {0}".format(self.name)
+        return self.name
 
     class Meta:
         verbose_name = 'Show Application'
