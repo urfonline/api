@@ -30,6 +30,8 @@
                 <a href="{% url "admin:applications_showapplication_change" slot.accepted_application.pk %}">
                   {{ slot.accepted_application.name }}
                 </a>
+              {% else %}
+                (Free)
               {% endif %}
               {% if slot.biweekly_partner %}
                 / <a href="{% url "admin:applications_showapplication_change" slot.biweekly_partner.pk %}">
