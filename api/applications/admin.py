@@ -1,5 +1,6 @@
 from datetime import time, timedelta, datetime, date
 
+from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin import register
 from django.forms import Widget, ModelForm
@@ -11,8 +12,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from solo.admin import SingletonModelAdmin
 
-from api.shows.models import ScheduleSlate, ShowSlot, Show
-from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
+from api.shows.models import ScheduleSlate, ShowSlot, Show, DAYS_OF_WEEK
+from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings, AVAILABLE_HOURS
 
 
 class AcceptedListFilter(admin.SimpleListFilter):
@@ -273,6 +274,30 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             request.POST['_continue'] = ""
 
         return super().response_change(request, obj)
+
+    def current_schedule_view(self, request):
+        slots = TimeSlotRequest.objects.all()
+
+        rows = {}
+        for hour, _ in AVAILABLE_HOURS:
+            rows[hour] = dict(
+                slots=slots.filter(hour=hour).order_by('day'),
+                human=time(hour).strftime("%I%p"),
+            )
+
+        ctx = dict(
+            rows=rows,
+            opts=self.model._meta,
+            week=DAYS_OF_WEEK,
+        )
+
+        return TemplateResponse(request, 'admin/schedule.html', context=ctx)
+
+    def get_urls(self):
+        return [
+            url(r'^current-schedule/$', self.current_schedule_view)
+        ] + super().get_urls()
+
 
 class SlotTakenListFilter(admin.SimpleListFilter):
     title = 'filled status'
