@@ -5,6 +5,7 @@ from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from api.applications.models import ShowApplicationSettings
 from api.shows.models import upload_to_show_cover, upload_to_show_banner
 
 def verify_origin(request):
@@ -18,6 +19,10 @@ def upload_cover(request):
     if not verify_origin(request):
         return JsonResponse({'success': False, 'message': "Invalid origin"})
 
+    cfg = ShowApplicationSettings.get_solo()
+    if not cfg.applications_open:
+        return JsonResponse({'success': False, 'message': "Show applications not open."})
+
     if request.method == 'POST':
         file = request.FILES['file']
         filename = upload_to_show_cover(None, file.name)
@@ -30,6 +35,10 @@ def upload_cover(request):
 def upload_banner(request):
     if not verify_origin(request):
         return JsonResponse({'success': False, 'message': "Invalid origin"})
+
+    cfg = ShowApplicationSettings.get_solo()
+    if not cfg.applications_open:
+        return JsonResponse({'success': False, 'message': "Show applications not open."})
 
     if request.method == 'POST':
         file = request.FILES['file']

@@ -21,6 +21,10 @@ AVAILABLE_HOURS = list(
 class TimeSlotRequest(models.Model):
     day = models.IntegerField(choices=DAYS_OF_WEEK)
     hour = models.IntegerField(choices=AVAILABLE_HOURS)
+    biweekly_partner = models.OneToOneField('ShowApplication', blank=True, null=True, on_delete=models.SET_NULL,
+                                            verbose_name='Even-week show',
+                                            help_text='The show that runs biweekly with the first show',
+                                            related_name='biweekly_slot')
 
     def is_taken(self):
         return hasattr(self, 'accepted_application')
@@ -107,7 +111,7 @@ class ShowApplication(TimeStampedModel, models.Model):
 
     @property
     def is_accepted(self):
-        return self.assigned_slot is not None
+        return self.assigned_slot is not None or hasattr(self, 'biweekly_slot')
 
     @property
     def has_show(self):
@@ -137,7 +141,7 @@ class ShowApplication(TimeStampedModel, models.Model):
         show.save(update_fields=keys)
 
     def __str__(self):
-        return "Show Application: {0}".format(self.name)
+        return self.name
 
     class Meta:
         verbose_name = 'Show Application'

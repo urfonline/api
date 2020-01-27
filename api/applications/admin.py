@@ -1,5 +1,6 @@
 from datetime import time, timedelta, datetime, date
 
+from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin import register
 from django.forms import Widget, ModelForm
@@ -11,8 +12,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from solo.admin import SingletonModelAdmin
 
-from api.shows.models import ScheduleSlate, ShowSlot, Show
-from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
+from api.shows.models import ScheduleSlate, ShowSlot, Show, DAYS_OF_WEEK
+from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings, AVAILABLE_HOURS
 
 
 class AcceptedListFilter(admin.SimpleListFilter):
@@ -27,9 +28,9 @@ class AcceptedListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == '1':
-            return queryset.filter(assigned_slot__isnull=False)
+            return queryset.filter(assigned_slot__isnull=False) | queryset.filter(biweekly_slot__isnull=False)
         if self.value() == '0':
-            return queryset.filter(assigned_slot__isnull=True)
+            return queryset.filter(assigned_slot__isnull=True) & queryset.filter(biweekly_slot__isnull=True)
 
         return queryset
 
@@ -64,12 +65,18 @@ class TimeSlotWidget(Widget):
         slot = TimeSlotRequest.objects.get(pk=value)
         context = {
             'slot_request': slot,
+            'slot_link': reverse('admin:applications_timeslotrequest_change', args=[slot.pk]),
             'taken': slot.is_taken(),
+            'biweekly_available': self.show_application.biweekly
+                                  and slot.is_taken()
+                                  and slot.accepted_application.biweekly,
+            'biweekly_taken': bool(slot.biweekly_partner),
             'slot_name': name,
         }
 
         if slot.is_taken():
             context['taken_by_self'] = slot.accepted_application == self.show_application
+            context['biweekly_is_self'] = slot.biweekly_partner == self.show_application
 
         return mark_safe(render_to_string('admin/time_slot_widget.html', context))
 
@@ -110,7 +117,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
-        'created_at', 'link_to_connected_show'
+        'link_to_biweekly_slot', 'created_at', 'link_to_connected_show'
     )
 
     fieldsets = (
@@ -121,7 +128,8 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             'fields': ('name', 'short_description', 'long_description', 'brand_color', 'emoji_description', 'category')
         }),
         ('Slot Choices', {
-            'fields': ('biweekly', 'first_slot_choice', 'second_slot_choice', 'third_slot_choice', 'assigned_slot')
+            'fields': ('biweekly', 'first_slot_choice', 'second_slot_choice', 'third_slot_choice', 'assigned_slot',
+                       'link_to_biweekly_slot')
         }),
         ('Miscellaneous', {
             'fields': ('cover', 'banner',
@@ -140,6 +148,15 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', link, obj.connected_show.name)
 
     link_to_connected_show.short_description = 'Connected show'
+
+    def link_to_biweekly_slot(self, obj):
+        if not hasattr(obj, 'biweekly_slot'):
+            return self.admin_site.empty_value_display
+
+        link = reverse('admin:applications_timeslotrequest_change', args=[obj.biweekly_slot.id])
+        return format_html('<a href="{}">{!s}</a>', link, obj.biweekly_slot)
+
+    link_to_biweekly_slot.short_description = 'Even-week assigned slot'
 
     def make_shows(self, request, queryset):
         if request.POST.get("post"):
@@ -188,21 +205,25 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             except Show.DoesNotExist:
                 show = show_app.make_show()
 
+            # Even-week biweeklies will have no assigned slot
+            # We have the time info on biweekly_slot, but shows app doesn't support biweeklies yet
+            # So for now, we just let it make the show and leave it unslotted
             time_slot = show_app.assigned_slot
-            start_time = time(hour=time_slot.hour)
-            end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
+            if time_slot is not None:
+                start_time = time(hour=time_slot.hour)
+                end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
 
-            slot, created = ShowSlot.objects.get_or_create(
-                defaults=dict(show=show),
-                slate=slate,
-                day=time_slot.day,
-                start_time=start_time,
-                end_time=end_time,
-            )
+                slot, created = ShowSlot.objects.get_or_create(
+                    defaults=dict(show=show),
+                    slate=slate,
+                    day=time_slot.day,
+                    start_time=start_time,
+                    end_time=end_time,
+                )
 
-            if not created:
-                slot.show = show
-                slot.save(update_fields=['show'])
+                if not created:
+                    slot.show = show
+                    slot.save(update_fields=['show'])
 
             show_app.connected_show = show
             show_app.save(update_fields=['connected_show'])
@@ -225,20 +246,59 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         choice = None
+        biweekly = False
+        drop = False
 
-        if 'assign_first_slot_choice' in request.POST:
-            choice = int(request.POST['first_slot_choice'])
-        elif 'assign_second_slot_choice' in request.POST:
-            choice = int(request.POST['second_slot_choice'])
-        elif 'assign_third_slot_choice' in request.POST:
-            choice = int(request.POST['third_slot_choice'])
+        for n in ('first', 'second', 'third'):
+            if 'drop_{}_slot_choice_biweekly'.format(n) in request.POST:
+                biweekly = True
+                drop = True
+            elif 'assign_{}_slot_choice_biweekly'.format(n) in request.POST:
+                biweekly = True
+            elif 'assign_{}_slot_choice'.format(n) in request.POST:
+                pass
+            else:
+                continue
+
+            choice = int(request.POST[n + '_slot_choice'])
+            break
 
         if choice is not None:
-            obj.assigned_slot = TimeSlotRequest.objects.get(pk=choice)
-            obj.save(update_fields=['assigned_slot'])
+            if biweekly:
+                ts = TimeSlotRequest.objects.get(pk=choice)
+                ts.biweekly_partner = None if drop else obj
+                ts.save(update_fields=['biweekly_partner'])
+            else:
+                obj.assigned_slot = TimeSlotRequest.objects.get(pk=choice)
+                obj.save(update_fields=['assigned_slot'])
             request.POST['_continue'] = ""
 
         return super().response_change(request, obj)
+
+    def current_schedule_view(self, request):
+        slots = TimeSlotRequest.objects.all()
+
+        rows = {}
+        for hour, _ in AVAILABLE_HOURS:
+            rows[hour] = dict(
+                slots=slots.filter(hour=hour).order_by('day'),
+                human=time(hour).strftime("%I%p"),
+            )
+
+        ctx = dict(
+            rows=rows,
+            opts=self.model._meta,
+            week=DAYS_OF_WEEK,
+            title="Show applications calendar",
+        )
+
+        return TemplateResponse(request, 'admin/schedule.html', context=ctx)
+
+    def get_urls(self):
+        return [
+            url(r'^current-schedule/$', self.current_schedule_view)
+        ] + super().get_urls()
+
 
 class SlotTakenListFilter(admin.SimpleListFilter):
     title = 'filled status'
@@ -262,7 +322,9 @@ class SlotTakenListFilter(admin.SimpleListFilter):
 class TimeSlotRequestAdmin(admin.ModelAdmin):
     list_display = ('day', 'hour',)
     list_filter = ('day', SlotTakenListFilter,)
+    ordering = ('day', 'hour',)
     readonly_fields = ('linked_application',)
+    fields = ('day', 'hour', 'linked_application', 'biweekly_partner',)
 
     def linked_application(self, obj):
         if not obj.accepted_application:

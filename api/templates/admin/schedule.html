@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n admin_urls static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; {% trans 'Current schedule layout' %}
+</div>
+{% endblock %}
+
+{% block content %}
+  <div>
+  <table style="table-layout: fixed;">
+    <thead>
+      <tr>
+        <th>Start Time</th>
+        {% for i, day in week %}
+          <th style="width: 13.5%">{{ day }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for hour, row in rows.items %}
+        <tr>
+          <td>{{ row.human }}</td>
+          {% for slot in row.slots %}
+            <td>
+              {% if slot.is_taken %}
+                <a href="{% url "admin:applications_showapplication_change" slot.accepted_application.pk %}">
+                  {{ slot.accepted_application.name }}
+                </a>
+              {% else %}
+                (Free)
+              {% endif %}
+              {% if slot.biweekly_partner %}
+                / <a href="{% url "admin:applications_showapplication_change" slot.biweekly_partner.pk %}">
+                  {{ slot.biweekly_partner.name }}
+                </a>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+{% endblock %}
