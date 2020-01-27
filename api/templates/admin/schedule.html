@@ -11,12 +11,12 @@
 
 {% block content %}
   <div>
-  <table>
+  <table style="table-layout: fixed;">
     <thead>
       <tr>
         <th>Start Time</th>
         {% for i, day in week %}
-          <th>{{ day }}</th>
+          <th style="width: 13.5%">{{ day }}</th>
         {% endfor %}
       </tr>
     </thead>
@@ -27,10 +27,14 @@
           {% for slot in row.slots %}
             <td>
               {% if slot.is_taken %}
-                {{ slot.accepted_application.name }}
+                <a href="{% url "admin:applications_showapplication_change" slot.accepted_application.pk %}">
+                  {{ slot.accepted_application.name }}
+                </a>
               {% endif %}
               {% if slot.biweekly_partner %}
-                / {{ slot.biweekly_partner.name }}
+                / <a href="{% url "admin:applications_showapplication_change" slot.biweekly_partner.pk %}">
+                  {{ slot.biweekly_partner.name }}
+                </a>
               {% endif %}
             </td>
           {% endfor %}

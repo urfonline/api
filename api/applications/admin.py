@@ -289,6 +289,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             rows=rows,
             opts=self.model._meta,
             week=DAYS_OF_WEEK,
+            title="Show applications calendar",
         )
 
         return TemplateResponse(request, 'admin/schedule.html', context=ctx)
