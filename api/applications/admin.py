@@ -27,9 +27,9 @@ class AcceptedListFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == '1':
-            return queryset.filter(assigned_slot__isnull=False)
+            return queryset.filter(assigned_slot__isnull=False) | queryset.filter(biweekly_slot__isnull=False)
         if self.value() == '0':
-            return queryset.filter(assigned_slot__isnull=True)
+            return queryset.filter(assigned_slot__isnull=True) & queryset.filter(biweekly_slot__isnull=True)
 
         return queryset
 
@@ -66,11 +66,16 @@ class TimeSlotWidget(Widget):
             'slot_request': slot,
             'slot_link': reverse('admin:applications_timeslotrequest_change', args=[slot.pk]),
             'taken': slot.is_taken(),
+            'biweekly_available': self.show_application.biweekly
+                                  and slot.is_taken()
+                                  and slot.accepted_application.biweekly,
+            'biweekly_taken': bool(slot.biweekly_partner),
             'slot_name': name,
         }
 
         if slot.is_taken():
             context['taken_by_self'] = slot.accepted_application == self.show_application
+            context['biweekly_is_self'] = slot.biweekly_partner == self.show_application
 
         return mark_safe(render_to_string('admin/time_slot_widget.html', context))
 
@@ -111,7 +116,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         'name', 'host_name', 'contact_email', 'contact_phone',
         'cover', 'cover_width', 'cover_height',
         'banner', 'banner_width', 'banner_height',
-        'created_at', 'link_to_connected_show'
+        'link_to_biweekly_slot', 'created_at', 'link_to_connected_show'
     )
 
     fieldsets = (
@@ -122,7 +127,8 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             'fields': ('name', 'short_description', 'long_description', 'brand_color', 'emoji_description', 'category')
         }),
         ('Slot Choices', {
-            'fields': ('biweekly', 'first_slot_choice', 'second_slot_choice', 'third_slot_choice', 'assigned_slot')
+            'fields': ('biweekly', 'first_slot_choice', 'second_slot_choice', 'third_slot_choice', 'assigned_slot',
+                       'link_to_biweekly_slot')
         }),
         ('Miscellaneous', {
             'fields': ('cover', 'banner',
@@ -141,6 +147,15 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', link, obj.connected_show.name)
 
     link_to_connected_show.short_description = 'Connected show'
+
+    def link_to_biweekly_slot(self, obj):
+        if not hasattr(obj, 'biweekly_slot'):
+            return self.admin_site.empty_value_display
+
+        link = reverse('admin:applications_timeslotrequest_change', args=[obj.biweekly_slot.id])
+        return format_html('<a href="{}">{!s}</a>', link, obj.biweekly_slot)
+
+    link_to_biweekly_slot.short_description = 'Even-week assigned slot'
 
     def make_shows(self, request, queryset):
         if request.POST.get("post"):
@@ -226,17 +241,31 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         choice = None
+        biweekly = False
+        drop = False
 
-        if 'assign_first_slot_choice' in request.POST:
-            choice = int(request.POST['first_slot_choice'])
-        elif 'assign_second_slot_choice' in request.POST:
-            choice = int(request.POST['second_slot_choice'])
-        elif 'assign_third_slot_choice' in request.POST:
-            choice = int(request.POST['third_slot_choice'])
+        for n in ('first', 'second', 'third'):
+            if 'drop_{}_slot_choice_biweekly'.format(n) in request.POST:
+                biweekly = True
+                drop = True
+            elif 'assign_{}_slot_choice_biweekly'.format(n) in request.POST:
+                biweekly = True
+            elif 'assign_{}_slot_choice'.format(n) in request.POST:
+                pass
+            else:
+                continue
+
+            choice = int(request.POST[n + '_slot_choice'])
+            break
 
         if choice is not None:
-            obj.assigned_slot = TimeSlotRequest.objects.get(pk=choice)
-            obj.save(update_fields=['assigned_slot'])
+            if biweekly:
+                ts = TimeSlotRequest.objects.get(pk=choice)
+                ts.biweekly_partner = None if drop else obj
+                ts.save(update_fields=['biweekly_partner'])
+            else:
+                obj.assigned_slot = TimeSlotRequest.objects.get(pk=choice)
+                obj.save(update_fields=['assigned_slot'])
             request.POST['_continue'] = ""
 
         return super().response_change(request, obj)

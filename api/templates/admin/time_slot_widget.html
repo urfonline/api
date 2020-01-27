@@ -1,12 +1,26 @@
 <div class="TimeSlotWidget">
   <p>
     <a href="{{ slot_link }}">{{ slot_request }}</a>
-    {% if taken_by_self %}
+    {% if taken_by_self or biweekly_is_self %}
       <span style="color: forestgreen;">[Assigned]</span>
     {% elif taken %}
       <span style="color: red;">[Taken]</span>
     {% endif %}
+
+    {% if biweekly_is_self %}
+      <span style="color: orange;">[Biweekly, Even-week]</span>
+    {% endif %}
+    {% if biweekly_taken and taken_by_self %}
+      <span style="color: orange;">[Biweekly, Odd-week]</span>
+    {% endif %}
   </p>
   <input type="hidden" name="{{ slot_name }}" value="{{ slot_request.pk }}"/>
   <input type="submit" name="assign_{{ slot_name }}" value="Assign This Slot" {% if taken %} disabled {% endif %}/>
+  {% if biweekly_available and not biweekly_is_self %}
+    <input type="submit" name="assign_{{ slot_name }}_biweekly" value="Assign as slot's even-week show"
+      {% if taken_by_self or biweekly_taken %} disabled {% endif %}/>
+  {% endif %}
+  {% if biweekly_is_self %}
+    <input type="submit" name="drop_{{ slot_name }}_biweekly" value="Unassign self from slot's even-week show"/>
+  {% endif %}
 </div>
