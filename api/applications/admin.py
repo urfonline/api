@@ -204,21 +204,25 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             except Show.DoesNotExist:
                 show = show_app.make_show()
 
+            # Even-week biweeklies will have no assigned slot
+            # We have the time info on biweekly_slot, but shows app doesn't support biweeklies yet
+            # So for now, we just let it make the show and leave it unslotted
             time_slot = show_app.assigned_slot
-            start_time = time(hour=time_slot.hour)
-            end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
+            if time_slot is not None:
+                start_time = time(hour=time_slot.hour)
+                end_time = (datetime.combine(date.min, start_time) + timedelta(hours=1)).time()
 
-            slot, created = ShowSlot.objects.get_or_create(
-                defaults=dict(show=show),
-                slate=slate,
-                day=time_slot.day,
-                start_time=start_time,
-                end_time=end_time,
-            )
+                slot, created = ShowSlot.objects.get_or_create(
+                    defaults=dict(show=show),
+                    slate=slate,
+                    day=time_slot.day,
+                    start_time=start_time,
+                    end_time=end_time,
+                )
 
-            if not created:
-                slot.show = show
-                slot.save(update_fields=['show'])
+                if not created:
+                    slot.show = show
+                    slot.save(update_fields=['show'])
 
             show_app.connected_show = show
             show_app.save(update_fields=['connected_show'])
