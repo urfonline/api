@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django_extensions.db.fields import AutoSlugField
 from solo.models import SingletonModel
 
 from api.core.models import TimeStampedModel
@@ -69,7 +70,7 @@ class ShowCategory(models.Model):
 
 class Show(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, verbose_name='Show Name', help_text='Name of the show')
-    slug = models.SlugField(unique=True)
+    slug = AutoSlugField(unique=True, blank=False, editable=True, populate_from='name')
 
     short_description = models.CharField(max_length=90, verbose_name='Short description', help_text='A tiny one-sentence tag line for the show')
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
