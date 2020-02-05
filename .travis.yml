@@ -15,5 +15,6 @@ env:
   - DJANGO_SETTINGS_MODULE=config.settings.test
 install: "pip install -r requirements/test.txt"
 before_script:
+  - psql -c 'CREATE DATABASE api;' -U postgres
   - ./manage.py migrate
 script: pytest
