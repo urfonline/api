@@ -9,5 +9,9 @@ before_install:
 language: python
 python:
   - "3.6"
+services:
+  - postgresql
 install: "pip install -r requirements/test.txt"
+before_script:
+  - ./manage.py migrate
 script: pytest
