@@ -396,7 +396,7 @@ class Query(graphene.ObjectType):
     def resolve_all_streams(self, info):
         return stream_models.StreamConfiguration.objects\
             .select_related('slate')\
-            .prefetch_related('slate__slots', 'slate__slots__show')\
+            .prefetch_related('slate__slots', 'slate__slots__show', 'slate__slots__child_shows')\
             .all()
 
     def resolve_all_categories(self, info):

@@ -122,15 +122,32 @@ class ScheduleSlate(TimeStampedModel, models.Model):
 class ShowSlot(TimeStampedModel, models.Model):
     show = models.ForeignKey(Show, null=False, related_name='slots')
     slate = models.ForeignKey(ScheduleSlate, null=False, related_name='slots')
+    child_shows = models.ManyToManyField(Show, blank=True, related_name='connected_slots')
 
     start_time = models.TimeField()
     end_time = models.TimeField()
     day = models.IntegerField(blank=False, null=False, choices=DAYS_OF_WEEK)
 
     def __str__(self):
+        show_name = "Multiple Shows"
+        num_shows = len(self.all_shows)
+
+        if num_shows == 1:
+            show_name = self.primary_show.name
+        elif num_shows == 0:
+            show_name = "No Show"
+
         return '[{slate}] {show} at {start} on {day}'.format(
-            show=self.show.name, slate=self.slate.name, start=self.start_time, day=DAYS[self.day]
+            show=show_name, slate=self.slate.name, start=self.start_time, day=DAYS[self.day]
         )
+
+    @property
+    def primary_show(self):
+        return self.show
+
+    @property
+    def all_shows(self):
+        return set([self.show] + list(self.child_shows.all()))
 
     class Meta:
         verbose_name = 'slot'
