@@ -66,11 +66,10 @@ class ShowSlot(DjangoObjectType):
     class Meta:
         model = show_models.ShowSlot
         interfaces = (Node, )
+        exclude_fields = ('child_shows',)
 
     day = graphene.Field(graphene.Int)
-
-    def resolve_day(self, info):
-        return self.day
+    all_shows = graphene.List('api.schema.schema.Show')
 
 
 class EpisodeCredit(DjangoObjectType):
@@ -135,15 +134,16 @@ class Show(DjangoObjectType):
     class Meta:
         model = show_models.Show
         interfaces = (Node, )
+        exclude_fields = ('connected_slots', 'scheduleslate_set',)
 
-    slots = graphene.List(ShowSlot)
+    slots = graphene.List(ShowSlot, slate=graphene.String(required=True))
     #series = graphene.List(ShowSeriesType)
     category = graphene.Field(ShowCategory)
     episodes = graphene.List(ShowEpisode)
     cover = graphene.Field(EmbeddedImage)
 
-    def resolve_slots(self, info):
-        return self.slots.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
+    def resolve_slots(self, info, slate):
+        return self.connected_slots.filter(slate=show_models.ScheduleSlate.objects.get(name=slate))
 
     # def resolve_series(self, args, context, info):
     #     return self.series.all()

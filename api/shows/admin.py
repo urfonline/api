@@ -19,8 +19,8 @@ class ShowAdmin(admin.ModelAdmin):
 
 @register(ShowSlot)
 class ShowSlotAdmin(admin.ModelAdmin):
-    list_display = ('show', 'day', 'start_time', 'end_time')
-
+    list_display = ('name', 'day', 'start_time', 'end_time')
+    search_fields = ('child_shows__name',)
 
 @register(ScheduleSlate)
 class ScheduleSlateAdmin(admin.ModelAdmin):

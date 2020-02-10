@@ -142,6 +142,10 @@ class ShowSlot(TimeStampedModel, models.Model):
         )
 
     @property
+    def name(self):
+        return " / ".join(map(str, self.all_shows))
+
+    @property
     def primary_show(self):
         return self.show
 
