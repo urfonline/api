@@ -136,14 +136,20 @@ class Show(DjangoObjectType):
         interfaces = (Node, )
         exclude_fields = ('connected_slots', 'scheduleslate_set',)
 
-    slots = graphene.List(ShowSlot, slate=graphene.String(required=True))
+    slots = graphene.List(ShowSlot, slate=graphene.String())
     #series = graphene.List(ShowSeriesType)
     category = graphene.Field(ShowCategory)
     episodes = graphene.List(ShowEpisode)
     cover = graphene.Field(EmbeddedImage)
 
-    def resolve_slots(self, info, slate):
-        return self.connected_slots.filter(slate=show_models.ScheduleSlate.objects.get(name=slate))
+    def resolve_slots(self, info, slate=None):
+        # TODO: Once frontend is updated, make `slate` a required argument
+        if slate:
+            slate_obj = show_models.ScheduleSlate.objects.get(name=slate)
+        else:
+            slate_obj = show_models.ShowsConfiguration.get_solo().current_slate
+
+        return self.connected_slots.filter(slate=slate_obj)
 
     # def resolve_series(self, args, context, info):
     #     return self.series.all()
