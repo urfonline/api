@@ -68,7 +68,6 @@ class ShowSlot(DjangoObjectType):
         interfaces = (Node, )
 
     day = graphene.Field(graphene.Int)
-    all_shows = graphene.List('api.schema.schema.Show')
 
 
 class EpisodeCredit(DjangoObjectType):
@@ -148,7 +147,7 @@ class Show(DjangoObjectType):
         else:
             slate_obj = show_models.ShowsConfiguration.get_solo().current_slate
 
-        return self.connected_slots.filter(slate=slate_obj)
+        return self.slots.filter(slate=slate_obj)
 
     # def resolve_series(self, args, context, info):
     #     return self.series.all()
