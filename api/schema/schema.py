@@ -66,7 +66,6 @@ class ShowSlot(DjangoObjectType):
     class Meta:
         model = show_models.ShowSlot
         interfaces = (Node, )
-        exclude_fields = ('child_shows',)
 
     day = graphene.Field(graphene.Int)
     all_shows = graphene.List('api.schema.schema.Show')
@@ -402,7 +401,7 @@ class Query(graphene.ObjectType):
     def resolve_all_streams(self, info):
         return stream_models.StreamConfiguration.objects\
             .select_related('slate')\
-            .prefetch_related('slate__slots', 'slate__slots__show', 'slate__slots__child_shows')\
+            .prefetch_related('slate__slots', 'slate__slots__show')\
             .all()
 
     def resolve_all_categories(self, info):
