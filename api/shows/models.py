@@ -16,6 +16,11 @@ DAYS_OF_WEEK = (
     (6, 'Sunday'),
 )
 
+BIWEEKLY_OPTIONS = (
+    (1, 'Odd Weeks'),
+    (2, 'Even Weeks'),
+)
+
 DAYS = [
     'Monday',
     'Tuesday',
@@ -126,11 +131,16 @@ class ShowSlot(TimeStampedModel, models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     day = models.IntegerField(blank=False, null=False, choices=DAYS_OF_WEEK)
+    week = models.IntegerField(blank=True, null=True, choices=BIWEEKLY_OPTIONS, default=None)
 
     def __str__(self):
         return '[{slate}] {show} at {start} on {day}'.format(
             show=self.show.name, slate=self.slate.name, start=self.start_time, day=DAYS[self.day]
         )
+
+    @property
+    def name(self):
+        return "[{slate.name}] {show.name}".format(slate=self.slate, show=self.show)
 
     class Meta:
         verbose_name = 'slot'
