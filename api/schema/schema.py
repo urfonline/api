@@ -337,7 +337,7 @@ class Query(graphene.ObjectType):
     homepage = graphene.List(HomepageBlock, )
     all_shows = DjangoConnectionField(Show, )
     current_slate = graphene.Field(ScheduleSlate, )
-    all_slots = graphene.List(ShowSlot, )
+    all_slots = graphene.List(ShowSlot, slate=graphene.String())
     all_slates = graphene.List(ScheduleSlate, )
     all_episodes = graphene.List(ShowEpisode, )
     all_streams = graphene.List(StreamConfiguration, )
@@ -394,8 +394,13 @@ class Query(graphene.ObjectType):
     def resolve_all_episodes(self, info):
         return show_models.ShowEpisode.objects.all()
 
-    def resolve_all_slots(self, info):
-        return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
+    def resolve_all_slots(self, info, slate):
+        if slate:
+            slate_obj = show_models.ScheduleSlate.objects.get(name=slate)
+        else:
+            slate_obj = show_models.ShowsConfiguration.objects.get().current_slate
+
+        return show_models.ShowSlot.objects.filter(slate=slate_obj)
 
     def resolve_all_streams(self, info):
         return stream_models.StreamConfiguration.objects\
