@@ -17,4 +17,8 @@ class Migration(migrations.Migration):
             name='week',
             field=models.IntegerField(blank=True, choices=[(1, 'Odd Weeks'), (2, 'Even Weeks')], default=None, null=True),
         ),
+        migrations.AlterUniqueTogether(
+            name='showslot',
+            unique_together=set([('slate', 'week', 'day', 'start_time', 'end_time')]),
+        ),
     ]

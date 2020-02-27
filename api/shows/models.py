@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django_extensions.db.fields import AutoSlugField
 from solo.models import SingletonModel
@@ -142,8 +143,19 @@ class ShowSlot(TimeStampedModel, models.Model):
     def name(self):
         return "[{slate.name}] {show.name}".format(slate=self.slate, show=self.show)
 
+    def validate_unique(self, exclude=None):
+        if ShowSlot.objects.exclude(id=self.id)\
+            .filter(slate=self.slate, day=self.day, start_time=self.start_time, end_time=self.end_time,
+                    week__isnull=True)\
+            .exists():
+            raise ValidationError("Duplicate slot for this slate: check that a slot with this day & time doesn't exist "
+                                  "already")
+
+        return super().validate_unique(exclude)
+
     class Meta:
         verbose_name = 'slot'
+        unique_together = ('slate', 'week', 'day', 'start_time', 'end_time',)
 
 
 class ShowSeries(TimeStampedModel, models.Model):
