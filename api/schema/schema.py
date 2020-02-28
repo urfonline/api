@@ -287,6 +287,7 @@ class PodcastEpisode(graphene.ObjectType):
 
 class Podcast(graphene.ObjectType):
     title = graphene.String()
+    slug = graphene.String()
     description = graphene.String()
     cover_url = graphene.String()
     episodes = graphene.List(PodcastEpisode,)

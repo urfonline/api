@@ -32,7 +32,9 @@ class Podcast(models.Model):
     is_public = models.BooleanField(verbose_name='visibility')
 
     def fetch_details(self) -> PodcastDetails:
-        return self.provider.fetch_podcast_details(self)
+        details = self.provider.fetch_podcast_details(self)
+        details.slug = self.slug
+        return details
 
     def __str__(self):
         return self.name

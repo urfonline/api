@@ -14,6 +14,7 @@ class PodcastEpisode:
 class PodcastDetails:
     def __init__(self, **kwargs):
         self.title = kwargs.get("title")
+        self.slug = None
         self.description = kwargs.get("description")
         self.cover_url = kwargs.get("cover_url", None)
         self.episodes = kwargs.get("episodes", [])
