@@ -16,6 +16,7 @@ from api.events import models as events_models
 from api.core import models as core_models
 from api.home import models as home_models
 from api.streams import models as stream_models
+from api.podcasts import models as podcast_models
 
 from .mutations.applications_mutations import *
 
@@ -275,6 +276,20 @@ class StaticSitePayload(graphene.ObjectType):
     def resolve_articles(self, info):
         return article_models.Article.objects.select_related('featured_image').all()
 
+class PodcastEpisode(graphene.ObjectType):
+    title = graphene.String()
+    description = graphene.String()
+    created_at = graphene.DateTime()
+    media_url = graphene.String()
+    cover_url = graphene.String()
+    duration = graphene.String()
+    is_explicit = graphene.Boolean()
+
+class Podcast(graphene.ObjectType):
+    title = graphene.String()
+    description = graphene.String()
+    cover_url = graphene.String()
+    episodes = graphene.List(PodcastEpisode,)
 
 class Login(graphene.Mutation):
     class Arguments:
@@ -305,6 +320,7 @@ class Query(graphene.ObjectType):
     all_episodes = graphene.List(ShowEpisode, )
     all_streams = graphene.List(StreamConfiguration, )
     all_categories = graphene.List(ShowCategory, )
+    all_podcasts = graphene.List(Podcast, )
     show = graphene.Field(Show, slug=graphene.String())
     stream = graphene.Field(StreamConfiguration, slug=graphene.String())
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
@@ -363,6 +379,10 @@ class Query(graphene.ObjectType):
 
     def resolve_all_categories(self, info):
         return show_models.ShowCategory.objects.all()
+
+    def resolve_all_podcasts(self, info):
+        for podcast in podcast_models.Podcast.objects.all():
+            yield podcast.fetch_details()
 
     def resolve_static_site_payload(self, info):
         return True

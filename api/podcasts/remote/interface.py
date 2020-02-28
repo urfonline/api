@@ -5,6 +5,7 @@ class PodcastEpisode:
         self.title = kwargs.get("title")
         self.description = kwargs.get("description")
         self.media_url = kwargs.get("media_url")
+        self.created_at = kwargs.get("created_at")
 
         self.cover_url = kwargs.get("cover_url", None)
         self.duration = kwargs.get("duration", "Unknown")
