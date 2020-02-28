@@ -386,7 +386,7 @@ class Query(graphene.ObjectType):
         return show_models.ShowCategory.objects.all()
 
     def resolve_all_podcasts(self, info):
-        for podcast in podcast_models.Podcast.objects.all():
+        for podcast in podcast_models.Podcast.objects.filter(is_public=True):
             yield podcast.fetch_details()
 
     def resolve_static_site_payload(self, info):
