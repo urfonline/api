@@ -323,6 +323,7 @@ class Query(graphene.ObjectType):
     all_podcasts = graphene.List(Podcast, )
     show = graphene.Field(Show, slug=graphene.String())
     stream = graphene.Field(StreamConfiguration, slug=graphene.String())
+    podcast = graphene.Field(Podcast, slug=graphene.String(required=True))
     automation_show = graphene.Field(Show, description='Show used when nothing is scheduled')
     application_settings = graphene.Field(ShowAppplicationSettings, )
 
@@ -349,6 +350,9 @@ class Query(graphene.ObjectType):
 
     def resolve_stream(self, info, slug):
         return stream_models.StreamConfiguration.objects.get(slug__iexact=slug)
+
+    def resolve_podcast(self, info, slug):
+        return podcast_models.Podcast.objects.get(slug__iexact=slug).fetch_details()
 
     def resolve_automation_show(self, info):
         return show_models.ShowsConfiguration.objects.get().automation_show
