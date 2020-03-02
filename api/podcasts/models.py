@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.functional import cached_property
 
 from api.podcasts.remote.interface import PodcastDetails
 from .remote import sharpstream_v1
@@ -35,6 +36,12 @@ class Podcast(models.Model):
         details = self.provider.fetch_podcast_details(self)
         details.slug = self.slug
         return details
+
+    cached_details = cached_property(fetch_details, name='cached_details')
+
+    @property
+    def description(self):
+        return self.cached_details.description
 
     def __str__(self):
         return self.name
