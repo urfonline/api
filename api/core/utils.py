@@ -1,6 +1,8 @@
 import os
 import uuid
+import math
 
+from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
@@ -18,3 +20,11 @@ def validate_hex(value: str):
             _('Invalid hex code %(value)s!'),
             params={'value': value}
         )
+
+def format_delta(value: timedelta):
+    seconds = int(value.total_seconds())
+
+    minutes = math.floor(seconds / 60)
+    remaining = seconds % 60
+
+    return f"{minutes:d}:{remaining:02d}"
