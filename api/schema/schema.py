@@ -294,6 +294,7 @@ class PodcastEpisode(graphene.ObjectType):
     cover_url = graphene.String()
     duration = graphene.String()
     is_explicit = graphene.Boolean()
+    is_preview = graphene.Boolean()
 
     class Meta:
         interfaces = (HasExternalLinks, )

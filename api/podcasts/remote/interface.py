@@ -10,6 +10,7 @@ class PodcastEpisode:
         self.cover_url = kwargs.get("cover_url", None)
         self.duration = kwargs.get("duration", "Unknown")
         self.is_explicit = kwargs.get("explicit", False)
+        self.is_preview = kwargs.get("preview", False)
         self.external_urls = kwargs.get("external_urls", {})
 
 class PodcastDetails:

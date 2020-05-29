@@ -33,7 +33,7 @@ def map_episode(episode: SimpleEpisode):
                           cover_url=max(episode.images, key=lambda i: i.width).url,
                           created_at=parse_spotify_date(episode.release_date, episode.release_date_precision),
                           duration=format_delta(timedelta(milliseconds=episode.duration_ms)), explicit=episode.explicit,
-                          external_urls=episode.external_urls)
+                          preview=True, external_urls=episode.external_urls)
 
 def fetch_podcast_details(provider, podcast):
     client = SpotifyClient.get(provider.api_key)
