@@ -20,3 +20,4 @@ class PodcastDetails:
         self.cover_url = kwargs.get("cover_url", None)
         self.external_urls = kwargs.get("external_urls", {})
         self.episodes = kwargs.get("episodes", [])
+        self.episodes.sort(key=lambda e: e.created_at)

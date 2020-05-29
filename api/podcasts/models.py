@@ -38,6 +38,10 @@ class Podcast(models.Model):
     def fetch_details(self) -> PodcastDetails:
         details = self.provider.fetch_podcast_details(self)
         details.slug = self.slug
+
+        if self.spotify_url is not None and 'spotify' not in details.external_urls:
+            details.external_urls['spotify'] = self.spotify_url
+
         return details
 
     cached_details = cached_property(fetch_details, name='cached_details')
