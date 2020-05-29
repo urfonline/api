@@ -10,7 +10,8 @@ HEADERS = {
 }
 
 namespaces = {
-    'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd'
+    'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd',
+    'atom': 'http://www.w3.org/2005/Atom',
 }
 
 def _parse_xml(xmlstr: str) -> PodcastDetails:
@@ -20,6 +21,7 @@ def _parse_xml(xmlstr: str) -> PodcastDetails:
     title = channel.find('title').text
     desc = channel.find('description').text
     cover = channel.find('itunes:image', namespaces).attrib['href']
+    feed_url = channel.find('atom:link', namespaces).attrib['href']
 
     episodes = []
 
@@ -36,7 +38,8 @@ def _parse_xml(xmlstr: str) -> PodcastDetails:
                             created_at=ep_created, duration=ep_duration, explicit=explicit)
         episodes.insert(0, ep)
 
-    return PodcastDetails(title=title, description=desc, cover_url=cover, episodes=episodes)
+    return PodcastDetails(title=title, description=desc, cover_url=cover, episodes=episodes,
+                          external_urls=dict(rss=feed_url))
 
 def fetch_podcast_details(provider, podcast) -> PodcastDetails:
     query = {
