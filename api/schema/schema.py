@@ -276,6 +276,16 @@ class StaticSitePayload(graphene.ObjectType):
     def resolve_articles(self, info):
         return article_models.Article.objects.select_related('featured_image').all()
 
+class HasExternalLinks(graphene.Interface):
+    spotify_url = graphene.String(required=False)
+    rss_url = graphene.String(required=False)
+
+    def resolve_spotify_url(self, info):
+        return self.external_urls.get('spotify', None)
+
+    def resolve_rss_url(self, info):
+        return self.external_urls.get('rss', None)
+
 class PodcastEpisode(graphene.ObjectType):
     title = graphene.String()
     description = graphene.String()
@@ -284,6 +294,10 @@ class PodcastEpisode(graphene.ObjectType):
     cover_url = graphene.String()
     duration = graphene.String()
     is_explicit = graphene.Boolean()
+    is_preview = graphene.Boolean()
+
+    class Meta:
+        interfaces = (HasExternalLinks, )
 
 class Podcast(graphene.ObjectType):
     title = graphene.String()
@@ -291,6 +305,9 @@ class Podcast(graphene.ObjectType):
     description = graphene.String()
     cover_url = graphene.String()
     episodes = graphene.List(PodcastEpisode,)
+
+    class Meta:
+        interfaces = (HasExternalLinks, )
 
 class Login(graphene.Mutation):
     class Arguments:

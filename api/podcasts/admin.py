@@ -16,7 +16,7 @@ class PodcastAdmin(ModelAdmin):
     readonly_fields = ('name', 'description',)
     fieldsets = (
         ('Options', {
-            'fields': ('name', 'slug', 'is_public', 'provider', 'podcast_id', 'playlist_id',)
+            'fields': ('name', 'slug', 'is_public', 'provider', 'podcast_id', 'playlist_id', 'spotify_id',)
         }),
         ('Details', {
             'description': "Details must be edited via the remote provider",

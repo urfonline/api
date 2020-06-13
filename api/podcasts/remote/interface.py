@@ -10,6 +10,8 @@ class PodcastEpisode:
         self.cover_url = kwargs.get("cover_url", None)
         self.duration = kwargs.get("duration", "Unknown")
         self.is_explicit = kwargs.get("explicit", False)
+        self.is_preview = kwargs.get("preview", False)
+        self.external_urls = kwargs.get("external_urls", {})
 
 class PodcastDetails:
     def __init__(self, **kwargs):
@@ -17,4 +19,6 @@ class PodcastDetails:
         self.slug = None
         self.description = kwargs.get("description")
         self.cover_url = kwargs.get("cover_url", None)
+        self.external_urls = kwargs.get("external_urls", {})
         self.episodes = kwargs.get("episodes", [])
+        self.episodes.sort(key=lambda e: e.created_at)
