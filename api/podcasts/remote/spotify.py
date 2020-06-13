@@ -9,13 +9,14 @@ class SpotifyClient:
     instance = None
 
     def __init__(self, api_key):
+        self.api_key = api_key
         client_id, client_secret = api_key.split(':')
         self.token = request_client_token(client_id, client_secret)
         self.spotify = Spotify(self.token)
 
     @classmethod
     def get(cls, api_key):
-        if cls.instance is None:
+        if cls.instance is None or cls.instance.api_key != api_key:
             cls.instance = SpotifyClient(api_key)
 
         return cls.instance
