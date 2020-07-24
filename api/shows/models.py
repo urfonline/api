@@ -1,4 +1,8 @@
+from datetime import date, timedelta
+import math
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django_extensions.db.fields import AutoSlugField
 from solo.models import SingletonModel
@@ -14,6 +18,11 @@ DAYS_OF_WEEK = (
     (4, 'Friday'),
     (5, 'Saturday'),
     (6, 'Sunday'),
+)
+
+BIWEEKLY_OPTIONS = (
+    (1, 'Odd Weeks'),
+    (2, 'Even Weeks'),
 )
 
 DAYS = [
@@ -54,6 +63,9 @@ def upload_to_episode_cover(instance, filename):
 def upload_to_episode_audio(instance, filename):
     return upload_to_content('episodes/audio', filename)
 
+def validate_monday(value: date):
+    if value.weekday() != 0:
+        raise ValidationError("%(value)s is not a Monday", params=dict(value=value))
 
 class ShowCategory(models.Model):
     name = models.CharField(max_length=30, verbose_name='Name')
@@ -108,12 +120,22 @@ class ScheduleSlate(TimeStampedModel, models.Model):
     name = models.CharField(max_length=5, null=False)
     notes = models.TextField(blank=True, null=True)
     automation_show = models.ForeignKey(Show, blank=False, null=True)
+    broadcast_start_date = models.DateField(verbose_name="Broadcasting Start Date", validators=[validate_monday])
 
     def __str__(self):
         return self.name
 
     def get_shows(self):
         return Show.objects.filter(slots__slate=self).select_related('category').distinct()
+
+    @property
+    def week_from_start(self):
+        """
+        Get the week number (1-indexed) based on the start of broadcasting date
+        :return: Week of broadcast calendar, starting at 1
+        """
+        diff = date.today() - self.broadcast_start_date
+        return math.floor(diff / timedelta(days=7)) + 1
 
     class Meta:
         verbose_name = 'slate'
@@ -126,14 +148,30 @@ class ShowSlot(TimeStampedModel, models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     day = models.IntegerField(blank=False, null=False, choices=DAYS_OF_WEEK)
+    week = models.IntegerField(blank=True, null=True, choices=BIWEEKLY_OPTIONS, default=None)
 
     def __str__(self):
         return '[{slate}] {show} at {start} on {day}'.format(
             show=self.show.name, slate=self.slate.name, start=self.start_time, day=DAYS[self.day]
         )
 
+    @property
+    def name(self):
+        return "[{slate.name}] {show.name}".format(slate=self.slate, show=self.show)
+
+    def validate_unique(self, exclude=None):
+        if ShowSlot.objects.exclude(id=self.id)\
+            .filter(slate=self.slate, day=self.day, start_time=self.start_time, end_time=self.end_time,
+                    week__isnull=True)\
+            .exists():
+            raise ValidationError("Duplicate slot for this slate: check that a slot with this day & time doesn't exist "
+                                  "already")
+
+        return super().validate_unique(exclude)
+
     class Meta:
         verbose_name = 'slot'
+        unique_together = ('slate', 'week', 'day', 'start_time', 'end_time',)
 
 
 class ShowSeries(TimeStampedModel, models.Model):

@@ -68,9 +68,7 @@ class ShowSlot(DjangoObjectType):
         interfaces = (Node, )
 
     day = graphene.Field(graphene.Int)
-
-    def resolve_day(self, info):
-        return self.day
+    week = graphene.Field(graphene.Int)
 
 
 class EpisodeCredit(DjangoObjectType):
@@ -135,15 +133,22 @@ class Show(DjangoObjectType):
     class Meta:
         model = show_models.Show
         interfaces = (Node, )
+        exclude_fields = ('scheduleslate_set',)
 
-    slots = graphene.List(ShowSlot)
+    slots = graphene.List(ShowSlot, slate=graphene.String())
     #series = graphene.List(ShowSeriesType)
     category = graphene.Field(ShowCategory)
     episodes = graphene.List(ShowEpisode)
     cover = graphene.Field(EmbeddedImage)
 
-    def resolve_slots(self, info):
-        return self.slots.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
+    def resolve_slots(self, info, slate=None):
+        # TODO: Once frontend is updated, make `slate` a required argument
+        if slate:
+            slate_obj = show_models.ScheduleSlate.objects.get(name=slate)
+        else:
+            slate_obj = show_models.ShowsConfiguration.get_solo().current_slate
+
+        return self.slots.filter(slate=slate_obj)
 
     # def resolve_series(self, args, context, info):
     #     return self.series.all()
@@ -165,6 +170,7 @@ class ScheduleSlate(DjangoObjectType):
 
     slots = graphene.List(ShowSlot)
     shows = graphene.List(Show)
+    week_from_start = graphene.Int()
 
     def resolve_shows(self, info):
         return self.get_shows()
@@ -333,7 +339,7 @@ class Query(graphene.ObjectType):
     homepage = graphene.List(HomepageBlock, )
     all_shows = DjangoConnectionField(Show, )
     current_slate = graphene.Field(ScheduleSlate, )
-    all_slots = graphene.List(ShowSlot, )
+    all_slots = graphene.List(ShowSlot, slate=graphene.String())
     all_slates = graphene.List(ScheduleSlate, )
     all_episodes = graphene.List(ShowEpisode, )
     all_streams = graphene.List(StreamConfiguration, )
@@ -390,8 +396,13 @@ class Query(graphene.ObjectType):
     def resolve_all_episodes(self, info):
         return show_models.ShowEpisode.objects.all()
 
-    def resolve_all_slots(self, info):
-        return show_models.ShowSlot.objects.filter(slate=show_models.ShowsConfiguration.objects.get().current_slate)
+    def resolve_all_slots(self, info, slate):
+        if slate:
+            slate_obj = show_models.ScheduleSlate.objects.get(name=slate)
+        else:
+            slate_obj = show_models.ShowsConfiguration.objects.get().current_slate
+
+        return show_models.ShowSlot.objects.filter(slate=slate_obj)
 
     def resolve_all_streams(self, info):
         return stream_models.StreamConfiguration.objects\
