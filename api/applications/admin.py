@@ -108,7 +108,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at', 'host_name', 'category',)
     list_select_related = ('owner', 'category',)
     search_fields = ('name', 'host_name', 'producer_name',)
-    list_filter = ('category', AcceptedListFilter, HasShowListFilter,)
+    list_filter = ('category', 'biweekly', AcceptedListFilter, HasShowListFilter,)
     ordering = ('-created_at',)
 
     actions = ('make_shows',)
@@ -207,7 +207,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 
             # Figure out if this show is biweekly & if it's odd or even week
             if show_app.biweekly:
-                if show_app.biweekly_slot:
+                if hasattr(show_app, 'biweekly_slot'):
                     week = 2
                     time_slot = show_app.biweekly_slot
                 else:
