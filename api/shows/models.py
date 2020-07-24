@@ -1,3 +1,6 @@
+from datetime import date, timedelta
+import math
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -60,6 +63,9 @@ def upload_to_episode_cover(instance, filename):
 def upload_to_episode_audio(instance, filename):
     return upload_to_content('episodes/audio', filename)
 
+def validate_monday(value: date):
+    if value.weekday() != 0:
+        raise ValidationError("%(value)s is not a Monday", params=dict(value=value))
 
 class ShowCategory(models.Model):
     name = models.CharField(max_length=30, verbose_name='Name')
@@ -114,12 +120,22 @@ class ScheduleSlate(TimeStampedModel, models.Model):
     name = models.CharField(max_length=5, null=False)
     notes = models.TextField(blank=True, null=True)
     automation_show = models.ForeignKey(Show, blank=False, null=True)
+    broadcast_start_date = models.DateField(verbose_name="Broadcasting Start Date", validators=[validate_monday])
 
     def __str__(self):
         return self.name
 
     def get_shows(self):
         return Show.objects.filter(slots__slate=self).select_related('category').distinct()
+
+    @property
+    def week_from_start(self):
+        """
+        Get the week number (1-indexed) based on the start of broadcasting date
+        :return: Week of broadcast calendar, starting at 1
+        """
+        diff = date.today() - self.broadcast_start_date
+        return math.floor(diff / timedelta(days=7)) + 1
 
     class Meta:
         verbose_name = 'slate'

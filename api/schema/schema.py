@@ -68,6 +68,7 @@ class ShowSlot(DjangoObjectType):
         interfaces = (Node, )
 
     day = graphene.Field(graphene.Int)
+    week = graphene.Field(graphene.Int)
 
 
 class EpisodeCredit(DjangoObjectType):
@@ -169,6 +170,7 @@ class ScheduleSlate(DjangoObjectType):
 
     slots = graphene.List(ShowSlot)
     shows = graphene.List(Show)
+    week_from_start = graphene.Int()
 
     def resolve_shows(self, info):
         return self.get_shows()
