@@ -133,7 +133,7 @@ class Show(DjangoObjectType):
     class Meta:
         model = show_models.Show
         interfaces = (Node, )
-        exclude_fields = ('connected_slots', 'scheduleslate_set',)
+        exclude_fields = ('scheduleslate_set',)
 
     slots = graphene.List(ShowSlot, slate=graphene.String())
     #series = graphene.List(ShowSeriesType)
