@@ -2,36 +2,24 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.views import defaults as default_views
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
-from django.views import defaults as default_views
 from graphene_django.views import GraphQLView
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import AllowAny
-from rest_framework.decorators import authentication_classes, permission_classes, api_view, parser_classes
-from wagtail.wagtailadmin import urls as wagtailadmin_urls
-from wagtail.wagtaildocs import urls as wagtaildocs_urls
-from wagtail.wagtailcore import urls as wagtail_urls
-from wagtail.api.v2.endpoints import PagesAPIEndpoint
+from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.api.v2.router import WagtailAPIRouter
-from wagtail.wagtailimages.api.v2.endpoints import ImagesAPIEndpoint
-from wagtail.wagtaildocs.api.v2.endpoints import DocumentsAPIEndpoint
+from wagtail.api.v2.views import PagesAPIViewSet
+from wagtail.core import urls as wagtail_urls
+from wagtail.documents import urls as wagtaildocs_urls
+from wagtail.documents.api.v2.views import DocumentsAPIViewSet
+from wagtail.images.api.v2.views import ImagesAPIViewSet
 
 api_router = WagtailAPIRouter('wagtailapi')
 
-api_router.register_endpoint('pages', PagesAPIEndpoint)
-api_router.register_endpoint('images', ImagesAPIEndpoint)
-api_router.register_endpoint('documents', DocumentsAPIEndpoint)
-
-
-def graphql_token_view():
-    view = GraphQLView.as_view(graphiql=True)
-    view = parser_classes([])(view)
-    view = permission_classes((AllowAny,))(view)
-    view = authentication_classes((TokenAuthentication,))(view)
-    view = api_view(['POST', 'GET'])(view)
-    return view
+api_router.register_endpoint('pages', PagesAPIViewSet)
+api_router.register_endpoint('images', ImagesAPIViewSet)
+api_router.register_endpoint('documents', DocumentsAPIViewSet)
 
 
 class GraphQLWithAuthView(GraphQLView):
