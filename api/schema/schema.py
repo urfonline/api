@@ -6,7 +6,7 @@ from graphene_django.converter import convert_django_field
 from rest_framework.authtoken.models import Token
 import graphene
 from taggit.managers import TaggableManager
-from wagtail.wagtailcore.rich_text import expand_db_html
+from wagtail.core.rich_text import expand_db_html
 
 from api.shows import models as show_models
 from api.applications import models as application_models
