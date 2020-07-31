@@ -12,7 +12,7 @@ class StreamConfiguration(models.Model):
     proxy_url = models.CharField(max_length=70, default=None, null=True, blank=True)
     priority_online = models.IntegerField(blank=False, null=False, default=10, verbose_name="Online Priority")
     priority_offline = models.IntegerField(blank=False, null=False, default=3, verbose_name="Bed Priority")
-    slate = models.ForeignKey(ScheduleSlate, null=True, blank=True, verbose_name="Active Slate")
+    slate = models.ForeignKey(ScheduleSlate, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Active Slate")
 
     def __str__(self):
         return self.name

@@ -19,7 +19,7 @@ class UrfImage(AbstractImage):
 
 
 class UrfRendition(AbstractRendition):
-    image = models.ForeignKey(UrfImage, related_name='renditions')
+    image = models.ForeignKey(UrfImage, on_delete=models.CASCADE, related_name='renditions')
 
     class Meta:
         unique_together = (
