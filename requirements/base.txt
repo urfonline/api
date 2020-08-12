@@ -10,7 +10,7 @@ django==3.1
 
 # Configuration
 django-environ==0.4.5
-whitenoise==3.3.0
+whitenoise==5.2.0
 
 
 # Forms
@@ -21,7 +21,7 @@ django-model-utils==4.0.0
 django-extensions==3.0.3
 
 # Images
-Pillow==4.1.1
+Pillow==7.2.0
 
 # Password storage
 argon2-cffi==18.1.0
@@ -32,7 +32,7 @@ django-allauth==0.42.0
 
 
 # Python-PostgreSQL Database Adapter
-psycopg2==2.7.4
+psycopg2==2.8.5
 
 # Redis support
 django-redis==4.12.1
