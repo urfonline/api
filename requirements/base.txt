@@ -41,9 +41,6 @@ awesome-slugify==1.6.5
 django-redis==4.12.1
 redis>=2.10.5
 
-
-celery==4.4.6
-
 tekore==2.0.0
 
 graphene>=2.0
