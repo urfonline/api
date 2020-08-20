@@ -18,7 +18,6 @@ TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 ALLOWED_HOSTS = ['*']
 
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = ["localhost:8080", "urfonline.com"]
 CSRF_TRUSTED_ORIGINS = ["localhost", ".local"]
 
 # SECRET CONFIGURATION
@@ -75,11 +74,6 @@ INSTALLED_APPS += ['django_extensions', ]
 # TESTING
 # ------------------------------------------------------------------------------
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
-
-########## CELERY
-# In development, all tasks will be executed locally by blocking until the task returns
-CELERY_ALWAYS_EAGER = True
-########## END CELERY
 
 # Your local stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------

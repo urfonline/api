@@ -1,5 +1,5 @@
 from django.db import models
-from wagtail.wagtailimages.models import Image, AbstractImage, AbstractRendition
+from wagtail.images.models import Image, AbstractImage, AbstractRendition
 from model_utils.fields import AutoCreatedField, AutoLastModifiedField
 
 
@@ -19,7 +19,7 @@ class UrfImage(AbstractImage):
 
 
 class UrfRendition(AbstractRendition):
-    image = models.ForeignKey(UrfImage, related_name='renditions')
+    image = models.ForeignKey(UrfImage, on_delete=models.CASCADE, related_name='renditions')
 
     class Meta:
         unique_together = (

@@ -86,7 +86,7 @@ class Show(TimeStampedModel, models.Model):
 
     short_description = models.CharField(max_length=90, verbose_name='Short description', help_text='A tiny one-sentence tag line for the show')
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
-    category = models.ForeignKey(ShowCategory, blank=False, related_name='shows')
+    category = models.ForeignKey(ShowCategory, on_delete=models.CASCADE, blank=False, related_name='shows')
 
     cover = models.ImageField(null=True, blank=True, upload_to=upload_to_show_cover, width_field='cover_width', height_field='cover_height')
     cover_width = models.IntegerField(blank=True, null=True)
@@ -119,7 +119,7 @@ class Show(TimeStampedModel, models.Model):
 class ScheduleSlate(TimeStampedModel, models.Model):
     name = models.CharField(max_length=5, null=False)
     notes = models.TextField(blank=True, null=True)
-    automation_show = models.ForeignKey(Show, blank=False, null=True)
+    automation_show = models.ForeignKey(Show, on_delete=models.SET_NULL, blank=False, null=True)
     broadcast_start_date = models.DateField(verbose_name="Broadcasting Start Date", validators=[validate_monday])
 
     def __str__(self):
@@ -142,8 +142,8 @@ class ScheduleSlate(TimeStampedModel, models.Model):
 
 
 class ShowSlot(TimeStampedModel, models.Model):
-    show = models.ForeignKey(Show, null=False, related_name='slots')
-    slate = models.ForeignKey(ScheduleSlate, null=False, related_name='slots')
+    show = models.ForeignKey(Show, on_delete=models.CASCADE, null=False, related_name='slots')
+    slate = models.ForeignKey(ScheduleSlate, on_delete=models.CASCADE, null=False, related_name='slots')
 
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -175,7 +175,7 @@ class ShowSlot(TimeStampedModel, models.Model):
 
 
 class ShowSeries(TimeStampedModel, models.Model):
-    show = models.ForeignKey(Show, null=False, related_name='series')
+    show = models.ForeignKey(Show, on_delete=models.CASCADE, null=False, related_name='series')
     name = models.CharField(max_length=80, null=False)
     slug = models.SlugField()
     type = models.CharField(max_length=20, null=False, default='broadcast', choices=SERIES_TYPE)
@@ -189,8 +189,8 @@ class ShowSeries(TimeStampedModel, models.Model):
 
 
 class ShowEpisode(TimeStampedModel, models.Model):
-    show = models.ForeignKey(Show, null=False, related_name='episodes')
-    series = models.ForeignKey(ShowSeries, null=False, related_name='episodes')
+    show = models.ForeignKey(Show, on_delete=models.CASCADE, null=False, related_name='episodes')
+    series = models.ForeignKey(ShowSeries, on_delete=models.CASCADE, null=False, related_name='episodes')
 
     name = models.CharField(max_length=80, null=False)
     slug = models.SlugField()
@@ -238,8 +238,8 @@ class EpisodeCredit(models.Model):
 
 
 class ShowsConfiguration(SingletonModel):
-    current_slate = models.ForeignKey(ScheduleSlate, blank=True, null=True)
-    automation_show = models.ForeignKey(Show, blank=True, null=True)
+    current_slate = models.ForeignKey(ScheduleSlate, on_delete=models.SET_NULL, blank=True, null=True)
+    automation_show = models.ForeignKey(Show, on_delete=models.SET_NULL, blank=True, null=True)
     off_air = models.BooleanField(default=False)
 
     def __str__(self):

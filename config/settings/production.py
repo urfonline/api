@@ -65,7 +65,6 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['api.urfonline.com', ]
 
 # CORS & CSRF configuration
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = ["urfonline.com", "www.urfonline.com"]
 CSRF_TRUSTED_ORIGINS = [".urfonline.com"]
 CORS_ALLOW_CREDENTIALS = False
 
@@ -208,9 +207,8 @@ LOGGING = {
         },
     },
 }
-SENTRY_CELERY_LOGLEVEL = env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO)
+
 RAVEN_CONFIG = {
-    'CELERY_LOGLEVEL': env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO),
     'DSN': SENTRY_DSN,
     'release': env('HEROKU_SLUG_COMMIT', default='unknown'),
 

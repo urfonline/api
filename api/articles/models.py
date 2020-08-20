@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.db import models
-from wagtail.wagtailadmin.edit_handlers import MultiFieldPanel, FieldPanel, RichTextFieldPanel, \
+from wagtail.admin.edit_handlers import MultiFieldPanel, FieldPanel, \
     FieldRowPanel, ObjectList
-from wagtail.wagtailcore.fields import RichTextField
-from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
+from wagtail.core.fields import RichTextField
+from wagtail.images.edit_handlers import ImageChooserPanel
 
 from api.core.models import TimeStampedModel
 from api.core.utils import upload_to_content
@@ -30,7 +30,7 @@ class Article(TimeStampedModel, models.Model):
     title = models.CharField(max_length=120, blank=False, null=False)
     slug = models.SlugField()
 
-    featured_image = models.ForeignKey(UrfImage, blank=True, null=True)
+    featured_image = models.ForeignKey(UrfImage, on_delete=models.SET_NULL, blank=True, null=True)
     short_description = models.TextField(blank=False)
 
     tone = models.CharField(max_length=20, default='BLOG', choices=ARTICLE_TONES)
