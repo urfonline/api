@@ -1,5 +1,9 @@
 from django.db import models
 from django.utils.functional import cached_property
+from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.api import APIField
+from wagtail.core.fields import RichTextField
+from wagtail.core.models import Page
 
 from api.podcasts.remote.interface import PodcastDetails
 from .remote import sharpstream_v1, spotify
@@ -59,3 +63,21 @@ class Podcast(models.Model):
 
     def __str__(self):
         return self.name
+
+class PodcastHomePage(Page):
+    subpage_types = ['PodcastPage']
+    max_count = 1
+
+class PodcastPage(Page):
+    body = RichTextField()
+
+    subpage_types = []
+    parent_page_types = ['PodcastHomePage']
+
+    content_panels = Page.content_panels + [
+        FieldPanel('body'),
+    ]
+
+    api_fields = [
+        APIField('body'),
+    ]
