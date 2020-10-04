@@ -78,14 +78,17 @@ class SendApplicationMutation(graphene.Mutation):
             banner = os.path.join("content/shows/banners", os.path.basename(banner_filename))
 
         application = ShowApplication(
-            name=name, short_description=short_description, long_description=long_description,
-            category=show_category, brand_color=brand_color, emoji_description=emoji_description,
-            biweekly=biweekly, new_show=new, host_name=host_name, contact_phone=contact_phone,
-            contact_email=contact_email, producer_name=producer_name,
+            name=name.strip(), short_description=short_description.strip(), long_description=long_description.strip(),
+            category=show_category, brand_color=brand_color, emoji_description=emoji_description.strip(),
+            biweekly=biweekly, new_show=new, host_name=host_name, contact_phone=contact_phone.strip(),
+            contact_email=contact_email.strip(), producer_name=producer_name,
             first_slot_choice=first, second_slot_choice=second, third_slot_choice=third,
-            social_facebook_url=social_facebook_url, social_twitter_handle=social_twitter_handle,
-            social_mixcloud_handle=social_mixcloud_handle, social_snapchat_handle=social_snapchat_handle,
-            social_instagram_handle=social_instagram_handle, social_youtube_url=social_yotube_url,
+            social_facebook_url=social_facebook_url.strip(),
+            social_twitter_handle=social_twitter_handle.strip(),
+            social_mixcloud_handle=social_mixcloud_handle.strip(),
+            social_snapchat_handle=social_snapchat_handle.strip(),
+            social_instagram_handle=social_instagram_handle.strip(),
+            social_youtube_url=social_yotube_url.strip(),
             cover=cover, banner=banner
         )
 
