@@ -315,6 +315,12 @@ class Podcast(graphene.ObjectType):
     class Meta:
         interfaces = (HasExternalLinks, )
 
+class PodcastPage(DjangoObjectType):
+    class Meta:
+        model = podcast_models.PodcastPage
+        interfaces = (Node, )
+        only_fields = ('title', 'body', 'seo_title', 'slug',)
+
 class Login(graphene.Mutation):
     class Arguments:
         username = graphene.String()
@@ -364,6 +370,9 @@ class Query(graphene.ObjectType):
     # Members
     all_members = graphene.List(User, )
     viewer = graphene.Field(User, description='The current user')
+
+    # Podcasting site extras
+    podcast_page = graphene.Field(PodcastPage, slug=graphene.String(required=True))
 
     def resolve_homepage(self, info):
         return home_models.HomepageBlock.objects.order_by('position', '-published_at')\
@@ -437,6 +446,9 @@ class Query(graphene.ObjectType):
 
     def resolve_application_settings(self, info):
         return application_models.ShowApplicationSettings.objects.get()
+
+    def resolve_podcast_page(self, info, slug):
+        return podcast_models.PodcastPage.objects.live().get(slug=slug)
 
     def resolve_viewer(self, info):
         return info.context.user if info.context.user.is_authenticated else None
