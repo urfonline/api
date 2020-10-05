@@ -83,12 +83,12 @@ class SendApplicationMutation(graphene.Mutation):
             biweekly=biweekly, new_show=new, host_name=host_name, contact_phone=contact_phone.strip(),
             contact_email=contact_email.strip(), producer_name=producer_name,
             first_slot_choice=first, second_slot_choice=second, third_slot_choice=third,
-            social_facebook_url=social_facebook_url.strip(),
-            social_twitter_handle=social_twitter_handle.strip(),
-            social_mixcloud_handle=social_mixcloud_handle.strip(),
-            social_snapchat_handle=social_snapchat_handle.strip(),
-            social_instagram_handle=social_instagram_handle.strip(),
-            social_youtube_url=social_yotube_url.strip(),
+            social_facebook_url=social_facebook_url,
+            social_twitter_handle=social_twitter_handle,
+            social_mixcloud_handle=social_mixcloud_handle,
+            social_snapchat_handle=social_snapchat_handle,
+            social_instagram_handle=social_instagram_handle,
+            social_youtube_url=social_yotube_url,
             cover=cover, banner=banner
         )
 
