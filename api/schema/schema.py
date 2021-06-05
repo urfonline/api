@@ -17,6 +17,7 @@ from api.core import models as core_models
 from api.home import models as home_models
 from api.streams import models as stream_models
 from api.podcasts import models as podcast_models
+from api.elections import models as elections_models
 
 from .mutations.applications_mutations import *
 
@@ -321,6 +322,23 @@ class PodcastPage(DjangoObjectType):
         interfaces = (Node, )
         only_fields = ('title', 'body', 'seo_title', 'slug',)
 
+class Candidate(DjangoObjectType):
+    class Meta:
+        model = elections_models.Candidate
+        interfaces = (Node, )
+        only_fields = ('name', 'bio', 'image',)
+
+class ElectablePosition(DjangoObjectType):
+    class Meta:
+        model = elections_models.Position
+        interfaces = (Node, )
+        only_fields = ('name',)
+
+    candidates = graphene.List(Candidate)
+
+    def resolve_candidates(self, info):
+        return self.candidates.all()
+
 class Login(graphene.Mutation):
     class Arguments:
         username = graphene.String()
@@ -351,6 +369,7 @@ class Query(graphene.ObjectType):
     all_streams = graphene.List(StreamConfiguration, )
     all_categories = graphene.List(ShowCategory, )
     all_podcasts = graphene.List(Podcast, )
+    all_positions = graphene.List(ElectablePosition, )
     show = graphene.Field(Show, slug=graphene.String())
     stream = graphene.Field(StreamConfiguration, slug=graphene.String())
     podcast = graphene.Field(Podcast, slug=graphene.String(required=True))
@@ -425,6 +444,11 @@ class Query(graphene.ObjectType):
     def resolve_all_podcasts(self, info):
         for podcast in podcast_models.Podcast.objects.filter(is_public=True):
             yield podcast.fetch_details()
+
+    def resolve_all_positions(self, info):
+        return elections_models.Position.objects\
+            .prefetch_related('candidates')\
+            .all()
 
     def resolve_static_site_payload(self, info):
         return True
