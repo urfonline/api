@@ -88,11 +88,11 @@ class Show(TimeStampedModel, models.Model):
     long_description = models.TextField(verbose_name='Long description', help_text='A long description for your show')
     category = models.ForeignKey(ShowCategory, on_delete=models.CASCADE, blank=False, related_name='shows')
 
-    cover = models.ImageField(null=True, blank=True, upload_to=upload_to_show_cover, width_field='cover_width', height_field='cover_height')
+    cover = models.ImageField(null=True, blank=True, upload_to=upload_to_show_cover)
     cover_width = models.IntegerField(blank=True, null=True)
     cover_height = models.IntegerField(blank=True, null=True)
 
-    banner = models.ImageField(upload_to=upload_to_show_banner, blank=True, null=True, width_field='banner_width', height_field='banner_height')
+    banner = models.ImageField(upload_to=upload_to_show_banner, blank=True, null=True)
     banner_width = models.IntegerField(blank=True, null=True)
     banner_height = models.IntegerField(blank=True, null=True)
 
@@ -195,7 +195,7 @@ class ShowEpisode(TimeStampedModel, models.Model):
     name = models.CharField(max_length=80, null=False)
     slug = models.SlugField()
 
-    cover = models.ImageField(upload_to=upload_to_episode_cover, blank=True, null=True, width_field='cover_width', height_field='cover_height')
+    cover = models.ImageField(upload_to=upload_to_episode_cover, blank=True, null=True)
     cover_width = models.IntegerField(blank=True, null=True)
     cover_height = models.IntegerField(blank=True, null=True)
 
