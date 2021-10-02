@@ -280,7 +280,10 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             else:
                 obj.assigned_slot = TimeSlotRequest.objects.get(pk=choice)
                 obj.save(update_fields=['assigned_slot'])
-            request.POST['_continue'] = ""
+            form_data = request.POST.copy()
+            form_data['_continue'] = ""
+
+            request.POST = form_data
 
         return super().response_change(request, obj)
 
