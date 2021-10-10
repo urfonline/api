@@ -10,9 +10,8 @@ from api.shows.models import upload_to_show_cover, upload_to_show_banner
 
 def verify_origin(request):
     origin = request.META.get("HTTP_ORIGIN")
-    origin_url = urlparse(origin)
 
-    return origin_url.netloc in settings.CORS_ORIGIN_WHITELIST
+    return origin in settings.CORS_ORIGIN_WHITELIST
 
 @csrf_exempt
 def upload_cover(request):
