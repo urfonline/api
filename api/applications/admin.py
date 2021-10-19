@@ -2,7 +2,7 @@ from datetime import time, timedelta, datetime, date
 
 from django.conf.urls import url
 from django.contrib import admin, messages
-from django.contrib.admin import register
+from django.contrib.admin import register, helpers
 from django.forms import Widget, ModelForm
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -14,7 +14,6 @@ from solo.admin import SingletonModelAdmin
 
 from api.shows.models import ScheduleSlate, ShowSlot, Show, DAYS_OF_WEEK
 from .models import ShowApplication, TimeSlotRequest, ShowApplicationSettings, AVAILABLE_HOURS
-
 
 class AcceptedListFilter(admin.SimpleListFilter):
     title = 'accepted status'
@@ -171,7 +170,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
             slates=slates,
             opts=self.model._meta,
             media=self.media,
-            action_checkbox_name=admin.ACTION_CHECKBOX_NAME,
+            action_checkbox_name=helpers.ACTION_CHECKBOX_NAME,
             queryset=queryset,
         )
 
