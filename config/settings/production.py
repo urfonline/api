@@ -10,9 +10,6 @@ Production Configurations
 
 """
 
-import logging
-
-
 from .base import *  # noqa
 
 # SECRET CONFIGURATION
@@ -213,10 +210,12 @@ LOGGING = {
     },
 }
 
+with ROOT_DIR.file(".git/refs/heads/master") as fd:
+    CURRENT_COMMIT_SHA = fd.read().strip()
+
 RAVEN_CONFIG = {
     'DSN': SENTRY_DSN,
-    'release': env('HEROKU_SLUG_COMMIT', default='unknown'),
-
+    'release': CURRENT_COMMIT_SHA,
 }
 
 # Custom Admin URL, use {% url 'admin:index' %}
