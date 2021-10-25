@@ -6,23 +6,24 @@ from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
 
 from api.podcasts.remote.interface import PodcastDetails
-from .remote import sharpstream_v1, spotify
+from .remote import spotify, timbre
 
 PROVIDER_TYPES = (
     ('sharpstream_v1', 'Sharpstream RSS API'),
     ('spotify', 'Spotify'),
+    ('timbre', 'Timbre (Sharpstream)'),
 )
 
 PROVIDERS = {
-    'sharpstream_v1': sharpstream_v1,
+    'sharpstream_v1': None,
     'spotify': spotify,
+    'timbre': timbre,
 }
 
 class PodcastProvider(models.Model):
     name = models.CharField(max_length=60)
     type = models.CharField(max_length=60, choices=PROVIDER_TYPES, verbose_name='Podcasts Provider')
-    api_key = models.CharField(max_length=200)
-    client_id = models.IntegerField(verbose_name='Client ID')
+    api_key = models.CharField(max_length=4096)
 
     def fetch_podcast_details(self, podcast) -> PodcastDetails:
         return PROVIDERS[self.type].fetch_podcast_details(self, podcast)
@@ -34,8 +35,7 @@ class Podcast(models.Model):
     name = models.CharField(max_length=70, blank=True)
     slug = models.SlugField(unique=True)
     provider = models.ForeignKey(PodcastProvider, on_delete=models.PROTECT)
-    podcast_id = models.IntegerField(verbose_name='Podcast ID')
-    playlist_id = models.IntegerField(verbose_name='Playlist ID')
+    remote_id = models.CharField(max_length=200, verbose_name='Provider ID of the podcast')
     spotify_id = models.CharField(max_length=70, blank=True, null=True, verbose_name='Spotify show ID')
     is_public = models.BooleanField(verbose_name='visibility')
 

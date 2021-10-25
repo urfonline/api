@@ -1,24 +1,24 @@
-from django.utils import timezone
+import graphene
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from graphene import ObjectType, Node
 from graphene_django import DjangoObjectType, DjangoConnectionField
 from graphene_django.converter import convert_django_field
 from rest_framework.authtoken.models import Token
-import graphene
 from taggit.managers import TaggableManager
 from wagtail.core.rich_text import expand_db_html
 
-from api.shows import models as show_models
 from api.applications import models as application_models
-from api.users import models as user_models
 from api.articles import models as article_models
-from api.events import models as events_models
 from api.core import models as core_models
-from api.home import models as home_models
-from api.streams import models as stream_models
-from api.podcasts import models as podcast_models
 from api.elections import models as elections_models
-
+from api.events import models as events_models
+from api.home import models as home_models
+from api.podcasts import controller as podcast_controller
+from api.podcasts import models as podcast_models
+from api.shows import models as show_models
+from api.streams import models as stream_models
+from api.users import models as user_models
 from .mutations.applications_mutations import *
 
 def connection_for_type(_type):
@@ -404,6 +404,10 @@ class Query(graphene.ObjectType):
         return stream_models.StreamConfiguration.objects.get(slug__iexact=slug)
 
     def resolve_podcast(self, info, slug):
+        details = podcast_controller.fetch_cached_podcast(slug)
+        if details is not None:
+            return details
+
         return podcast_models.Podcast.objects.get(slug__iexact=slug).fetch_details()
 
     def resolve_automation_show(self, info):
@@ -442,6 +446,9 @@ class Query(graphene.ObjectType):
         return show_models.ShowCategory.objects.all()
 
     def resolve_all_podcasts(self, info):
+        for details in podcast_controller.fetch_cached_podcasts():
+            yield details
+
         for podcast in podcast_models.Podcast.objects.filter(is_public=True):
             yield podcast.fetch_details()
 
