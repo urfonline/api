@@ -200,7 +200,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
 
         for app in queryset:
             csv.writerow({
-                "Name": app.host_name,
+                "Name": app.host_name.strip(),
                 "Email Address": app.contact_email,
                 "Phone": app.contact_phone,
                 "Show Name": app.name,
