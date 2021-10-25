@@ -1,9 +1,11 @@
+from csv import DictWriter
 from datetime import time, timedelta, datetime, date
 
 from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin import register, helpers
 from django.forms import Widget, ModelForm
+from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -101,6 +103,17 @@ class ShowApplicationForm(ModelForm):
             'link_to_connected_show': 'When this slot has been turned into a show, it will be linked here',
         }
 
+def format_time_slot(show_app: ShowApplication) -> str:
+    timeslot = show_app.assigned_slot
+    if show_app.biweekly:
+        if hasattr(show_app, 'biweekly_slot'):
+            timeslot = show_app.biweekly_slot
+
+    if timeslot is None:
+        return ""
+
+    return str(timeslot)
+
 @register(ShowApplication)
 class ShowApplicationAdmin(admin.ModelAdmin):
     form = ShowApplicationForm
@@ -110,7 +123,7 @@ class ShowApplicationAdmin(admin.ModelAdmin):
     list_filter = ('category', 'biweekly', AcceptedListFilter, HasShowListFilter,)
     ordering = ('-created_at',)
 
-    actions = ('make_shows',)
+    actions = ('make_shows', 'export_emails',)
 
     readonly_fields = (
         'name', 'host_name', 'contact_email', 'contact_phone',
@@ -177,6 +190,27 @@ class ShowApplicationAdmin(admin.ModelAdmin):
         return TemplateResponse(request, "admin/slate_picker.html", context=ctx)
 
     make_shows.short_description = 'Turn selected applications into shows'
+
+    def export_emails(self, request, queryset):
+        res = HttpResponse(content_type="text/csv")
+        res["Content-Disposition"] = "attachment; filename=\"members.csv\""
+
+        csv = DictWriter(res, fieldnames=["Name", "Email Address", "Phone", "Show Name", "Biweekly", "Time Slot"])
+        csv.writeheader()
+
+        for app in queryset:
+            csv.writerow({
+                "Name": app.host_name,
+                "Email Address": app.contact_email,
+                "Phone": app.contact_phone,
+                "Show Name": app.name,
+                "Biweekly": "Yes" if app.biweekly else "No",
+                "Time Slot": format_time_slot(app),
+            })
+
+        return res
+
+    export_emails.short_description = 'Export selected applications as a mailing list'
 
     def create_shows_in(self, request, queryset):
         slate_pk = request.POST.get("slate")
