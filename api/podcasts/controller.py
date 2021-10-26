@@ -1,3 +1,5 @@
+from typing import List
+
 from django.core.cache import cache
 
 from .models import PodcastProvider
@@ -8,7 +10,7 @@ __all__ = ['fetch_cached_podcasts', 'fetch_cached_podcast']
 
 CACHE_KEY = "76_timbre_feeds"
 
-def fetch_cached_podcasts() -> list[PodcastDetails]:
+def fetch_cached_podcasts() -> List[PodcastDetails]:
     cached_feeds = cache.get(CACHE_KEY)
 
     if cached_feeds is None:
