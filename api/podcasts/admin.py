@@ -2,7 +2,6 @@ from django.contrib.admin import register, ModelAdmin
 
 from api.podcasts.models import PodcastProvider, Podcast
 
-
 @register(PodcastProvider)
 class PodcastProviderAdmin(ModelAdmin):
     list_display = ('name', 'type',)
@@ -16,7 +15,7 @@ class PodcastAdmin(ModelAdmin):
     readonly_fields = ('name', 'description',)
     fieldsets = (
         ('Options', {
-            'fields': ('name', 'slug', 'is_public', 'provider', 'podcast_id', 'playlist_id', 'spotify_id',)
+            'fields': ('name', 'slug', 'is_public', 'provider', 'remote_id', 'spotify_id',)
         }),
         ('Details', {
             'description': "Details must be edited via the remote provider",
