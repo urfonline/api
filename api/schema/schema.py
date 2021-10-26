@@ -117,7 +117,7 @@ class StreamConfiguration(DjangoObjectType):
     class Meta:
         model = stream_models.StreamConfiguration
         interfaces = (Node, )
-
+        only_fields = ('name', 'slug', 'type', 'proxy_url', 'priority_online', 'priority_offline', 'slate', )
 
 class User(DjangoObjectType):
     class Meta:
@@ -387,7 +387,6 @@ class Query(graphene.ObjectType):
     event = graphene.Field(Event, event_id=graphene.Int())
 
     # Members
-    all_members = graphene.List(User, )
     viewer = graphene.Field(User, description='The current user')
 
     # Podcasting site extras
@@ -418,9 +417,6 @@ class Query(graphene.ObjectType):
 
     def resolve_all_shows(self, info):
         return show_models.Show.objects.all()
-
-    def resolve_all_members(self, info):
-        return user_models.User.objects.all()
 
     def resolve_all_slates(self, info):
         return show_models.ScheduleSlate.objects.all()

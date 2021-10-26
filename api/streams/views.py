@@ -17,8 +17,10 @@ def process_response(stream: StreamConfiguration, data):
             "description": source["server_description"] if source is not None else None,
         }
     elif stream.type == "SHARPSTREAM":
+        is_online = data["status"] == "connected"
+
         return {
-            "offline": False,
+            "offline": not is_online,
             "description": "SharpStream",
         }
     else:
@@ -34,7 +36,12 @@ def get_stream_status(request: HttpRequest, stream_slug: str):
         if stream.status_url == "" or stream.status_url is None:
             return JsonResponse(process_response(stream, {}))
 
-        r = requests.get(stream.status_url, timeout=7)
+        headers = {}
+        if stream.type == "SHARPSTREAM":
+            headers["Authorization"] = f"Bearer {stream.api_key}"
+            headers["Accept"] = "application/json"
+
+        r = requests.get(stream.status_url, timeout=7, headers=headers)
     except StreamConfiguration.DoesNotExist:
         raise Http404("Stream with slug {0} does not exist.".format(stream_slug))
     except requests.exceptions.Timeout:
