@@ -29,37 +29,33 @@ def feed_to_podcast(feed, include_episodes=False) -> PodcastDetails:
 
     return details
 
-def fetch_podcasts(provider) -> Iterator[PodcastDetails]:
+def make_request(provider, params):
     headers = {
         "Authorization": f"Bearer {provider.api_key}",
         "Accept": "application/json",
     }
 
+    # TODO: Pagination
+    r = requests.get("https://timbrecms.sharp-stream.com/api/v1/feeds", headers=headers, params=params)
+    r.raise_for_status()
+
+    return r.json()["data"]
+
+def fetch_podcasts(provider) -> Iterator[PodcastDetails]:
     params = {
         "filters": "sync_to_website:eq:1"
     }
 
-    r = requests.get("https://timbrecms.sharp-stream.com/api/v1/feeds", headers=headers, params=params)
-    r.raise_for_status()
-
-    feeds = r.json()
-    return map(feed_to_podcast, feeds["data"])
+    feeds = make_request(provider, params)
+    return map(feed_to_podcast, feeds)
 
 def fetch_podcast(provider, slug) -> Optional[PodcastDetails]:
-    headers = {
-        "Authorization": f"Bearer {provider.api_key}",
-        "Accept": "application/json",
-    }
-
     params = {
         "with_items": 1,
         "filters": f"slug:eq:{slug}",
     }
 
-    r = requests.get(f"https://timbrecms.sharp-stream.com/api/v1/feeds", headers=headers, params=params)
-    r.raise_for_status()
-
-    feeds = r.json()["data"]
+    feeds = make_request(provider, params)
 
     if len(feeds) == 0:
         return None
