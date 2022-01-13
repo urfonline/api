@@ -286,12 +286,16 @@ class StaticSitePayload(graphene.ObjectType):
 class HasExternalLinks(graphene.Interface):
     spotify_url = graphene.String(required=False)
     rss_url = graphene.String(required=False)
+    apple_url = graphene.String(required=False)
 
     def resolve_spotify_url(self, info):
         return self.external_urls.get('spotify', None)
 
     def resolve_rss_url(self, info):
         return self.external_urls.get('rss', None)
+
+    def resolve_apple_url(self, info):
+        return self.external_urls.get('apple', None)
 
 class PodcastEpisode(graphene.ObjectType):
     title = graphene.String()
