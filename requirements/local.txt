@@ -8,6 +8,3 @@ Sphinx==1.6.1
 Werkzeug==1.0.1
 
 django-debug-toolbar==2.2
-
-# improved REPL
-ipdb==0.10.3
