@@ -384,11 +384,11 @@ class Query(graphene.ObjectType):
 
     # articles
     all_articles = DjangoConnectionField(Article, )
-    article = graphene.Field(Article, article_id=graphene.Int())
+    article = graphene.Field(Article, article_id=graphene.String())
 
     # events
     all_events = DjangoConnectionField(Event, )
-    event = graphene.Field(Event, event_id=graphene.Int())
+    event = graphene.Field(Event, event_id=graphene.String())
 
     # Members
     viewer = graphene.Field(User, description='The current user')
@@ -418,9 +418,6 @@ class Query(graphene.ObjectType):
 
     def resolve_current_slate(self, info):
         return show_models.ShowsConfiguration.objects.get().current_slate
-
-    def resolve_all_shows(self, info):
-        return show_models.Show.objects.all()
 
     def resolve_all_slates(self, info):
         return show_models.ScheduleSlate.objects.all()
@@ -460,20 +457,20 @@ class Query(graphene.ObjectType):
     def resolve_static_site_payload(self, info):
         return True
 
-    def resolve_all_articles(self, info):
+    def resolve_all_articles(self, info, **kwargs):
         return article_models.Article.objects\
             .filter(published_at__lte=timezone.now())\
             .order_by('-published_at')
 
     def resolve_article(self, info, article_id):
-        return article_models.Article.objects.get(pk=article_id)
+        return article_models.Article.objects.get(pk=int(article_id))
 
-    def resolve_all_events(self, info):
+    def resolve_all_events(self, info, **kwargs):
         return events_models.Event.objects\
             .order_by('start_date')
 
     def resolve_event(self, info, event_id):
-        return events_models.Event.objects.get(pk=event_id)
+        return events_models.Event.objects.get(pk=int(event_id))
 
     def resolve_application_settings(self, info):
         return application_models.ShowApplicationSettings.objects.get()

@@ -1,16 +1,16 @@
+import os.path
+
+import graphene
 from django.core.exceptions import ValidationError
 
 from api.applications.models import ShowApplication, TimeSlotRequest, ShowApplicationSettings
 from api.shows.models import ShowCategory
 
-import graphene
-import os.path
-
 __all__ = ['SendApplicationMutation']
 
 class TimeSlotInput(graphene.InputObjectType):
-    day = graphene.Int(required=True)
-    hour = graphene.Int(required=True)
+    day = graphene.String(required=True)
+    hour = graphene.String(required=True)
 
 class SendApplicationMutation(graphene.Mutation):
     class Arguments:
@@ -65,9 +65,9 @@ class SendApplicationMutation(graphene.Mutation):
         show_category = ShowCategory.objects.get(slug=category)
         brand_color = brand_color.lstrip('#')
 
-        first, _ = TimeSlotRequest.objects.get_or_create(day=first_slot.day, hour=first_slot.hour)
-        second, _ = TimeSlotRequest.objects.get_or_create(day=second_slot.day, hour=second_slot.hour)
-        third, _ = TimeSlotRequest.objects.get_or_create(day=third_slot.day, hour=third_slot.hour)
+        first, _ = TimeSlotRequest.objects.get_or_create(day=int(first_slot.day), hour=int(first_slot.hour))
+        second, _ = TimeSlotRequest.objects.get_or_create(day=int(second_slot.day), hour=int(second_slot.hour))
+        third, _ = TimeSlotRequest.objects.get_or_create(day=int(third_slot.day), hour=int(third_slot.hour))
 
         cover = None
         if cover_filename.strip():
