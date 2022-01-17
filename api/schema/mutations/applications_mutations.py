@@ -54,7 +54,7 @@ class SendApplicationMutation(graphene.Mutation):
         category, brand_color, emoji_description,
         first_slot, second_slot, third_slot,
         social_facebook_url=None, social_twitter_handle=None, social_mixcloud_handle=None, social_snapchat_handle=None,
-        social_instagram_handle=None, social_yotube_url=None,
+        social_instagram_handle=None, social_youtube_url=None,
         cover_filename="", banner_filename=""
     ):
         settings = ShowApplicationSettings.get_solo()
@@ -88,7 +88,7 @@ class SendApplicationMutation(graphene.Mutation):
             social_mixcloud_handle=social_mixcloud_handle,
             social_snapchat_handle=social_snapchat_handle,
             social_instagram_handle=social_instagram_handle,
-            social_youtube_url=social_yotube_url,
+            social_youtube_url=social_youtube_url,
             cover=cover, banner=banner
         )
 
